@@ -56,6 +56,10 @@ coolercontrold ──spawns──▶ thermal-rgb (Python, unprivileged cc-plugin
   "start at login" then wrote `Exec=/tmp/.mount_OpenRG…/usr/bin/OpenRGB` into
   `~/.config/autostart/OpenRGB.desktop`. That temporary mount path disappears, so after a
   reboot autostart fails and `ujust openrgb status` reports "not installed".
+- Root cause confirmed in the `ujust` recipe `_install_appimage_file`: it downloads the
+  AppImage to `~/.cache/ujust/appimages/` with `trap "rm -rf $DOWNLOAD_DIR" EXIT`, then
+  opens Gear Lever. Unless **Unlock → Move to the app menu** is clicked in Gear Lever,
+  closing that window deletes the only copy, so OpenRGB "uninstalls itself".
 - Decide the OpenRGB build:
   - **1.0rc2** (ujust, 2025-09-14) registers the board.
   - **release_1.0** (2026-09-11) contains `93830c12`, which adds the board's 761-byte
