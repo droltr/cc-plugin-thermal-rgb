@@ -40,11 +40,41 @@ coolercontrold ──spawns──▶ thermal-rgb (Python, unprivileged cc-plugin
   touch the keyboard (owned by `cc-plugin-game-rgb`). The OpenRGB GUI must stay
   closed, because it overrides Direct mode (lesson from MysticLight).
 
+## Decisions (2026-10-09, owner)
+
+- **Source:** CPU only, CoolerControl `k10temp temp1` (Tctl). GPU may be added later as an option.
+- **All LEDs follow CPU temperature**, including both RAM modules.
+- **Colour stops:** 50 °C blue · 60 °C yellow · 70 °C orange · 80 °C red. Below 50 °C hold
+  blue; at or above 80 °C hold red.
+
+## Colour model
+
+Smooth, perceptually even transitions. Interpolating in RGB produces muddy, uneven
+in-between shades (blue→yellow passes through grey). Interpolate in **OKLCH**
+(the polar form of OKLab, designed so equal steps look equally different), then
+convert to sRGB and clamp to the LED gamut.
+
+| Stop | °C | Target (sRGB) | Meaning |
+|---|---|---|---|
+| cold | 50 | `#2060ff` blue | idle |
+| warm | 60 | `#ffd000` yellow | light load |
+| hot | 70 | `#ff7a00` orange | heavy load |
+| very hot | 80 | `#ff0000` red | at the fan-max threshold |
+
+- Hue moves the short way (blue → green-cyan → yellow → orange → red). Lightness and chroma
+  are interpolated linearly in OKLCH.
+- LED correction: the per-channel gamma and white balance of WS2812-type LEDs differ from a
+  monitor. Phase 2 adds a per-zone correction table, tuned by eye with the owner.
+- Smoothing: EMA (exponential moving average) on temperature, τ ≈ 3 s; colour updates
+  only when ΔE (OKLab) > 0.01.
+- The 80 °C red stop matches the fan policy (all fans at 100 % above 80 °C), so the colour
+  tells you the fans are at maximum.
+
 ## Themes
 
 | # | Theme | Behaviour | Phase |
 |---|---|---|---|
-| T1 | **Temperature bands** | 4 bands with configurable thresholds and colours. Default: < 50 °C cold (blue), 50–65 warm (green/yellow), 65–80 hot (orange), > 80 very hot (red). Optional smooth gradient between stops. | 2 |
+| T1 | **Temperature bands** | Smooth OKLCH gradient through the four stops above (configurable). | 2 |
 | T2 | **Heat wave** | Wave travels rear → front (JARGB 1/2 → RAM → JARGB 3). Colour from T1, speed rises with temperature. | 3 |
 | T3 | **User colours rotating** | User-chosen palette cycles across the fan zones; optional temperature tint. | 3 |
 
@@ -104,6 +134,4 @@ coolercontrold ──spawns──▶ thermal-rgb (Python, unprivileged cc-plugin
 
 ## Open questions for the owner
 
-- Exact colours for the four bands, and the thresholds (CPU only, or the hotter of CPU and GPU?).
-- Should the RAM follow CPU temperature, or a DRAM temperature if one exists (spd5118 sensors are present)?
 - Licence for the eventual public release (repository is private for now).
