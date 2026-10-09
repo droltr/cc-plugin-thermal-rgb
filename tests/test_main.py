@@ -171,3 +171,63 @@ def test_main_retries_until_ready(tmp_path: Path) -> None:
     ):
         assert app.main() == 0
     assert attempts["n"] == 2
+
+
+def test_sweep_writes_gradient_and_restores(capsys: pytest.CaptureFixture[str]) -> None:
+    client = FakeClient()
+    with (
+        patch.object(app, "CoolerControlClient", FakeCC),
+        patch.object(app, "connect", lambda h, p: client),
+    ):
+        assert app.sweep_mode(parse_config({}), 48, 82, 2, 0, sleep=lambda s: None) == 0
+    ram_1 = client.devices[0]
+    assert ram_1.mode_set == "direct"
+    assert len(ram_1.colors) == 18 + 1  # 48..82 step 2, plus the restore
+    assert ram_1.colors[0] == (0x20, 0x60, 0xFF)  # 48 °C: below the first stop
+    assert ram_1.colors[-2] == (0xFF, 0, 0)  # 82 °C: red
+    assert ram_1.colors[-1] == (0x20, 0x60, 0xFF)  # restored for 45 °C
+    assert client.disconnected
+    assert "restored colour for current CPU 45.0" in capsys.readouterr().out
+
+
+def test_sweep_restore_failure_is_reported(capsys: pytest.CaptureFixture[str]) -> None:
+    class FailingCC(FakeCC):
+        def read_temp(self, uid: str, name: str) -> float:
+            raise CoolerControlError("down")
+
+    with (
+        patch.object(app, "CoolerControlClient", FailingCC),
+        patch.object(app, "connect", lambda h, p: FakeClient()),
+    ):
+        assert app.sweep_mode(parse_config({}), 50, 50, 1, 0, sleep=lambda s: None) == 0
+    assert "could not restore" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("argv", "expected"), [([], (45.0, 85.0)), (["60"], (60.0, 85.0)), (["55", "75"], (55.0, 75.0))]
+)
+def test_main_sweep_bounds(tmp_path: Path, argv: list[str], expected: tuple[float, float]) -> None:
+    with (
+        patch("sys.argv", ["thermal_rgb", "--config", str(tmp_path / "n.json"), "--sweep", *argv]),
+        patch.object(app, "sweep_mode", return_value=0) as sweep,
+    ):
+        assert app.main() == 0
+    assert sweep.call_args.args[1:] == expected
+
+
+def test_show_holds_one_colour(capsys: pytest.CaptureFixture[str]) -> None:
+    client = FakeClient()
+    with patch.object(app, "connect", lambda h, p: client):
+        assert app.show_mode(parse_config({}), (255, 255, 0)) == 0
+    assert client.devices[0].colors == [(255, 255, 0)]
+    assert client.devices[2].zones[3].colors == [(255, 255, 0)]
+    assert "showing #ffff00" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(("value", "code"), [("#ffff00", 0), ("yellow", 2)])
+def test_main_show(tmp_path: Path, value: str, code: int) -> None:
+    with (
+        patch("sys.argv", ["thermal_rgb", "--config", str(tmp_path / "n.json"), "--show", value]),
+        patch.object(app, "show_mode", return_value=0),
+    ):
+        assert app.main() == code
