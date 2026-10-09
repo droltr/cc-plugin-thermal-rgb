@@ -18,4 +18,4 @@ Status: ✅ done · 🔄 in progress · ⏳ planned · ❓ needs a decision.
 | 10 | Later themes: heat wave moving rear → front; user colours rotating on the fans | ⏳ | phase 3 |
 | 11 | Find out why OpenRGB "uninstalled itself" | ✅ | `docs/setup/openrgb.md` |
 | 12 | OpenRGB 1.0 (Flatpak, Bazaar) installed by the owner: udev warning, new effects, mouse detected | ✅ | `docs/setup/openrgb.md` |
-| 13 | Start the thermal plugin | 🔄 | phase 0 done (OpenRGB server), phase 1 done (v0.1.0, dry run) |
+| 13 | Start the thermal plugin | 🔄 | phases 0–1 done and installed in CoolerControl (PR #7); phase 2 next |

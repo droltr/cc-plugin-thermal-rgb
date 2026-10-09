@@ -11,6 +11,7 @@ import signal
 import sys
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -82,6 +83,45 @@ def list_mode(cfg: Config) -> int:
     return 0
 
 
+def sweep_mode(
+    cfg: Config,
+    start_c: float = 45.0,
+    end_c: float = 85.0,
+    step_c: float = 1.0,
+    hold_s: float = 1.5,
+    sleep: Callable[[float], None] = time.sleep,
+) -> int:
+    """Preview the gradient on the real LEDs without heating the CPU.
+
+    Walks start_c → end_c, printing each temperature and colour, then restores the
+    colour for the current CPU temperature. The running plugin only writes on change,
+    so it does not fight the preview while the CPU temperature is steady.
+    """
+    client = connect(cfg.openrgb_host, cfg.openrgb_port)
+    try:
+        zones = _resolve_zones(client.devices, cfg)
+        _ensure_direct_mode(client, zones)
+        temp = start_c
+        while temp <= end_c + 1e-9:
+            color = bands_color(temp, cfg.stops)
+            print(
+                f"{temp:5.1f} °C -> #{color[0]:02x}{color[1]:02x}{color[2]:02x} {color}", flush=True
+            )
+            _apply(client, zones, color)
+            sleep(hold_s)
+            temp += step_c
+        cc = CoolerControlClient(cfg.coolercontrol_url, cfg.coolercontrol_token)
+        try:
+            current = cc.read_temp(cfg.temp_device_uid or cc.first_cpu_uid(), cfg.temp_name)
+            _apply(client, zones, bands_color(current, cfg.stops))
+            print(f"restored colour for current CPU {current:.1f} °C")
+        except CoolerControlError as err:
+            print(f"could not restore current colour: {err}")
+    finally:
+        client.disconnect()
+    return 0
+
+
 def run(cfg: Config, stop: threading.Event) -> int:
     cc = CoolerControlClient(cfg.coolercontrol_url, cfg.coolercontrol_token)
     uid = cfg.temp_device_uid or cc.first_cpu_uid()
@@ -125,6 +165,13 @@ def main() -> int:
         "--config", type=Path, default=Path(os.environ.get("THERMAL_RGB_CONFIG", DEFAULT_CONFIG))
     )
     parser.add_argument("--list", action="store_true", help="list zones and exit")
+    parser.add_argument(
+        "--sweep",
+        nargs="*",
+        type=float,
+        metavar=("START", "END"),
+        help="preview the gradient on the LEDs (default 45 to 85 °C), then exit",
+    )
     parser.add_argument("--version", action="version", version=__version__)
     args = parser.parse_args()
     logging.basicConfig(
@@ -138,6 +185,10 @@ def main() -> int:
         return 2
     if args.list:
         return list_mode(cfg)
+    if args.sweep is not None:
+        start = args.sweep[0] if len(args.sweep) > 0 else 45.0
+        end = args.sweep[1] if len(args.sweep) > 1 else 85.0
+        return sweep_mode(cfg, start, end)
     stop = threading.Event()
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda *_: stop.set())
