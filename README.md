@@ -1,6 +1,19 @@
 # cc-plugin-thermal-rgb
 
-**Status: planning.** See [docs/PLAN.md](docs/PLAN.md).
+**Status: phase 1 (v0.1.0): reads temperatures and resolves zones; LED writes are off by default.**
+See [docs/PLAN.md](docs/PLAN.md).
+
+## Install
+
+```bash
+bash setup/install-openrgb-server.sh            # once: headless OpenRGB SDK server (user service)
+sudo bash install.sh && sudo systemctl restart coolercontrold
+python -m thermal_rgb --config config.local.json --list   # dev: show temperature, colour and zones
+```
+
+Settings live in `/var/lib/coolercontrol/plugins/thermal-rgb/config.json`: token, temperature
+source, colour stops, zone map, and `write_leds` (default `false` until phase 2 is verified on
+hardware).
 
 A CoolerControl **integration plugin** that colours the case, fan, RAM and
 motherboard LEDs by temperature, while CoolerControl drives the fans from the

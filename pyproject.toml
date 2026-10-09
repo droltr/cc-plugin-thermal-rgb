@@ -1,0 +1,17 @@
+[project]
+name = "cc-plugin-thermal-rgb"
+dynamic = ["version"]
+description = "CoolerControl integration plugin: temperature-driven RGB via OpenRGB"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["thermal_rgb"]
