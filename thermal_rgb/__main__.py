@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from . import __version__
-from .colors import RGB
+from .colors import RGB, hex_to_rgb
 from .config import Config, ConfigError, load_config
 from .coolercontrol import CoolerControlClient, CoolerControlError
 from .engine import Ema, bands_color, color_changed
@@ -122,6 +122,19 @@ def sweep_mode(
     return 0
 
 
+def show_mode(cfg: Config, color: RGB) -> int:
+    """Hold one colour on all configured zones (for judging colours by eye)."""
+    client = connect(cfg.openrgb_host, cfg.openrgb_port)
+    try:
+        zones = _resolve_zones(client.devices, cfg)
+        _ensure_direct_mode(client, zones)
+        _apply(client, zones, color)
+        print(f"showing #{color[0]:02x}{color[1]:02x}{color[2]:02x} {color} on {len(zones)} zones")
+    finally:
+        client.disconnect()
+    return 0
+
+
 def run(cfg: Config, stop: threading.Event) -> int:
     cc = CoolerControlClient(cfg.coolercontrol_url, cfg.coolercontrol_token)
     uid = cfg.temp_device_uid or cc.first_cpu_uid()
@@ -172,6 +185,7 @@ def main() -> int:
         metavar=("START", "END"),
         help="preview the gradient on the LEDs (default 45 to 85 °C), then exit",
     )
+    parser.add_argument("--show", metavar="HEX", help="hold one colour on all zones, then exit")
     parser.add_argument("--version", action="version", version=__version__)
     args = parser.parse_args()
     logging.basicConfig(
@@ -185,6 +199,12 @@ def main() -> int:
         return 2
     if args.list:
         return list_mode(cfg)
+    if args.show:
+        try:
+            return show_mode(cfg, hex_to_rgb(args.show))
+        except ValueError as err:
+            LOG.error("%s", err)
+            return 2
     if args.sweep is not None:
         start = args.sweep[0] if len(args.sweep) > 0 else 45.0
         end = args.sweep[1] if len(args.sweep) > 1 else 85.0

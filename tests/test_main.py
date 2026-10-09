@@ -213,3 +213,21 @@ def test_main_sweep_bounds(tmp_path: Path, argv: list[str], expected: tuple[floa
     ):
         assert app.main() == 0
     assert sweep.call_args.args[1:] == expected
+
+
+def test_show_holds_one_colour(capsys: pytest.CaptureFixture[str]) -> None:
+    client = FakeClient()
+    with patch.object(app, "connect", lambda h, p: client):
+        assert app.show_mode(parse_config({}), (255, 255, 0)) == 0
+    assert client.devices[0].colors == [(255, 255, 0)]
+    assert client.devices[2].zones[3].colors == [(255, 255, 0)]
+    assert "showing #ffff00" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(("value", "code"), [("#ffff00", 0), ("yellow", 2)])
+def test_main_show(tmp_path: Path, value: str, code: int) -> None:
+    with (
+        patch("sys.argv", ["thermal_rgb", "--config", str(tmp_path / "n.json"), "--show", value]),
+        patch.object(app, "show_mode", return_value=0),
+    ):
+        assert app.main() == code
