@@ -20,4 +20,5 @@ Status: ✅ done · 🔄 in progress · ⏳ planned · ❓ needs a decision.
 | 12 | OpenRGB 1.0 (Flatpak, Bazaar) installed by the owner: udev warning, new effects, mouse detected | ✅ | `docs/setup/openrgb.md` |
 | 13 | Start the thermal plugin | 🔄 | phases 0–1 done and installed in CoolerControl (PR #7); phase 2 next |
 | 15 | Sweep preview: hard transitions, flashes back to blue, yellow looked orange-brown, no green seen | 🔄 | cause 1: running plugin fought the preview; cause 2: LED green channel weaker than a monitor. Next: show colours one by one with the plugin stopped, then a correction table |
-| 16 | Show colours one at a time first; temperature test only after the colours are OK | 🔄 | `--show HEX` added |
+| 16 | Show colours one at a time first; temperature test only after the colours are OK | ✅ | 2026-10-09 with the plugin stopped: red, green, blue, white all clean; pure `#ffff00` leans green (normal for WS2812); our stops approved: `#2060ff` "ice blue", `#ffd000` clean yellow, `#ff7a00` orange, `#ff0000` red, clearly distinct from orange. No correction table needed. |
+| 17 | Temperature test after the colour check | ⏳ | next |
