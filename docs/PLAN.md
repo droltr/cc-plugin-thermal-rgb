@@ -90,14 +90,13 @@ convert to sRGB and clamp to the LED gamut.
   AppImage to `~/.cache/ujust/appimages/` with `trap "rm -rf $DOWNLOAD_DIR" EXIT`, then
   opens Gear Lever. Unless **Unlock → Move to the app menu** is clicked in Gear Lever,
   closing that window deletes the only copy, so OpenRGB "uninstalls itself".
-- Decide the OpenRGB build:
-  - **1.0rc2** (ujust, 2025-09-14) registers the board.
-  - **release_1.0** (2026-09-11) contains `93830c12`, which adds the board's 761-byte
-    zone config, and is the version MysticLight verified. Preferred if an official
-    AppImage exists; otherwise build it in a distrobox (MysticLight has the scripts).
-- Place the AppImage at a stable path, run it as a **systemd user service** in
-  `--server --noautoconnect` mode on 127.0.0.1:6742, disable OpenRGB's own GUI autostart,
-  and enable linger so it starts at boot.
+- **Build decided (2026-10-09):** the owner installed the **Flatpak `org.openrgb.OpenRGB` 1.0**
+  (release_1.0, includes `93830c12` for MS-7E62) through Bazaar. It detects MSI Mystic Light,
+  ENE DRAM ×2, Apex Pro and Rival 5. See `docs/setup/openrgb.md`.
+- Run it headless as a **systemd user service**:
+  `flatpak run org.openrgb.OpenRGB --server --server-host 127.0.0.1 --noautoconnect`, port 6742.
+  Disable the GUI autostart, remove the stale rc2 autostart entry, and enable linger so it
+  starts at boot.
 - Check: `--list-devices` shows MSI (JARGB 1/2/3, JAF), ENE DRAM ×2 and the Apex Pro.
 
 ### Phase 1 — Skeleton plugin
