@@ -19,3 +19,4 @@ Status: ✅ done · 🔄 in progress · ⏳ planned · ❓ needs a decision.
 | 11 | Find out why OpenRGB "uninstalled itself" | ✅ | `docs/setup/openrgb.md` |
 | 12 | OpenRGB 1.0 (Flatpak, Bazaar) installed by the owner: udev warning, new effects, mouse detected | ✅ | `docs/setup/openrgb.md` |
 | 13 | Start the thermal plugin | 🔄 | phase 0 done (OpenRGB server), phase 1 done (v0.1.0, dry run) |
+| 14 | Plan settings pages for the plugins | ✅ planned | `docs/SETTINGS-UI-PLAN.md` |
