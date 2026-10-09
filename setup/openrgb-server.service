@@ -1,0 +1,15 @@
+# Headless OpenRGB SDK server for the CoolerControl RGB plugins.
+# Installed by setup/install-openrgb-server.sh into ~/.config/systemd/user/.
+[Unit]
+Description=OpenRGB SDK server (headless, 127.0.0.1:6742)
+Documentation=https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/docs/setup/openrgb.md
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/flatpak run --command=openrgb org.openrgb.OpenRGB --server --server-host 127.0.0.1 --server-port 6742 --noautoconnect --loglevel warning
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
