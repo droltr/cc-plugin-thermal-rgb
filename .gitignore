@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+.pytest_cache/
+build/
+dist/
+*.log
+
+# Local secrets
+config.local.json
+credentials.json
+*.token
+
+# Soft-deleted files
+.deleted/
