@@ -54,7 +54,7 @@ colour; LEDs appear in blocks of 8.
 ## Prior work this builds on
 
 - `RgbLighting/openrgb-cpu-thermal-sync`: Python daemon (CPU temp → OpenRGB colour), 2026-09-11.
-- `RgbLighting/MysticLight` (+ submodule `game-lighting`, branch `working-temperature-rgb`):
+- `RgbLighting/mystic-light` (+ submodule `game-lighting`, branch `working-temperature-rgb`):
   verified JARGB 1–3 and JAF zones, temperature-based Direct mode for the board and DRAM
   (stops 40 °C blue, 55 °C green, 70 °C yellow, 85 °C orange, 95 °C red, using the hotter
   of CPU and GPU), and OpenRGB release_1.0 built from source. Verified 2026-09-15, before the reinstall.
