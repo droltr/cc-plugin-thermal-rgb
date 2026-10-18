@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-18
+
+Documentation release; no behaviour changes.
+
+### Added
+- `docs/troubleshooting.md`: every log message with its cause and fix, LED and settings-page checklists.
+- README: "what it does / does not do" summary, troubleshooting section; glossary in `docs/how-it-works.md`.
+
 ### Changed
 - Hardware documentation lists the complete reference system (CPU, RAM modules, board and BIOS, GPU,
   other RGB devices) and clarifies that ENE is the RAM LED controller, not the memory brand.
