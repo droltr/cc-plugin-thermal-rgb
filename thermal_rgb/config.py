@@ -22,7 +22,7 @@ DEFAULT_STOPS = (
     {"temp_c": 80, "color": "#ff0000"},  # very hot: red
 )
 
-# Logical zones on the owner's system, ordered rear to front (used by wave themes).
+# Logical zones on the reference system, ordered rear to front (used by wave themes).
 DEFAULT_ZONES = (
     {"name": "rear_1", "device": "MSI MYSTIC LIGHT", "zone": "JARGB 1"},
     {"name": "rear_2", "device": "MSI MYSTIC LIGHT", "zone": "JARGB 2"},
@@ -113,7 +113,7 @@ def credentials_path(config_path: Path) -> Path:
 
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
-    """Replace a JSON file atomically, keeping owner-only permissions."""
+    """Replace a JSON file atomically, keeping mode 0600."""
     tmp = path.with_name(path.name + ".tmp")
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as handle:

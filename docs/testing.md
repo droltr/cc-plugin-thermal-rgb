@@ -1,0 +1,54 @@
+# Testing
+
+Two layers: automated unit tests that need no hardware, and a manual hardware check on the reference
+system ([hardware.md](hardware.md)). Only the first is repeatable by anyone; the second records what was
+actually verified.
+
+## Automated tests
+
+```bash
+pip install -r requirements.txt ruff pytest pytest-cov
+ruff format --check . && ruff check . && pytest -q --cov --cov-fail-under=80
+```
+
+72 tests, 98 % line coverage (CI requires at least 80 %). GitHub Actions runs the same commands on every
+push to `main` and `develop` and on every pull request.
+
+| File | Covers |
+|---|---|
+| `tests/test_colors.py` | Hex parsing and rejection, OKLCH round trip, gradient exact at the stops, held outside the range, independent of stop order, blue→yellow midpoint not grey |
+| `tests/test_config.py` | Defaults, validation errors, file loading, token migration to `credentials.json`, masking, unwritable folder |
+| `tests/test_coolercontrol.py` | Latest-sample lookup, missing sensor, Bearer token header, wrapped HTTP errors, unexpected payload, no CPU device |
+| `tests/test_engine_and_zones.py` | Smoothing (first sample, time constant, no smoothing), colour change threshold, default zones resolve, unresolvable zone, device listing |
+| `tests/test_main.py` | Dry run writes nothing, colours written in Direct mode, temperature errors survived, skipped zones, `--list`, `--sweep`, `--show`, invalid config, retry until ready |
+
+Tests use fake OpenRGB and CoolerControl clients, so no server, LED or token is needed.
+
+## Hardware verification (reference system)
+
+| Date | Check | Result |
+|---|---|---|
+| 2026-10-09 | Device discovery with `--list` | MSI Mystic Light (`JARGB 1–3`) and both ENE DRAM modules found; all five zones resolved |
+| 2026-10-09 | Colours shown one by one with `--show`, plugin stopped | Red, green, blue and white clean; the four default stops judged by eye and approved (`#2060ff`, `#ffd000`, `#ff7a00`, `#ff0000`, red clearly distinct from orange) |
+| 2026-10-09 | Heat test (CoolerControl's CPU stress test) | Blue → yellow → orange → red at the expected thresholds, red held for 81 s, back to blue on cooling; transitions follow the fast-heating CPU |
+| 2026-10-18 | Settings page and token flow in CoolerControl 5.0.1 | New token entered on the page, moved to `credentials.json`, `config.json` shows `***`, HTTP 401/429 stopped |
+| 2026-10-18 | Release build installed with `install.sh` | Five zones resolved, `write_leds=True`, LEDs follow the CPU temperature, no warnings afterwards |
+
+Observations worth knowing:
+
+- Pure `#ffff00` looks greenish on addressable LEDs, which is why the default yellow is `#ffd000`.
+- Running `--sweep` while the installed plugin is active makes the two fight; stop the plugin first.
+
+## Not tested
+
+- Hardware other than the reference system, including Intel CPUs and other Mystic Light boards.
+- Suspend and resume, and restarting the OpenRGB server while the plugin runs (the plugin retries on
+  connection errors, but this has not been exercised on hardware).
+- Python versions other than 3.12 (CI) and 3.14 (reference system).
+
+## Reproducing a hardware check
+
+1. Stop the installed plugin so nothing else writes the LEDs.
+2. `python -m thermal_rgb --config config.local.json --list` to confirm the zones.
+3. `--show '#ff7a00'` (and the other stops) to judge each colour, then `--sweep 45 85` for the gradient.
+4. Start the plugin again and apply load; watch the journal for the `colour (…)` summary lines.
