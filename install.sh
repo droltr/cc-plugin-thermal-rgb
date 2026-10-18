@@ -15,6 +15,7 @@ rm -rf "$stage"
 mkdir -p "$stage/lib"
 cp "$src/manifest.toml" "$src/run.sh" "$src/requirements.txt" "$stage/"
 cp -r "$src/thermal_rgb" "$stage/lib/"
+cp -r "$src/ui" "$stage/"
 find "$stage/lib" -name __pycache__ -prune -exec rm -rf {} +
 /usr/bin/python3 -m venv "$stage/venv"
 "$stage/venv/bin/pip" install --quiet --disable-pip-version-check -r "$stage/requirements.txt"
@@ -27,9 +28,14 @@ else
 import json, os, sys
 token_file, out = sys.argv[1:]
 token = open(token_file).read().strip() if os.path.exists(token_file) else ""
-json.dump({"coolercontrol_token": token, "write_leds": False}, open(out, "w"), indent=2)
+json.dump({"coolercontrol_token": token, "write_leds": True}, open(out, "w"), indent=2)
 PY
     chmod 0600 "$stage/config.json"
+fi
+
+# The token entered on the settings page lives here; keep it across updates.
+if [ -f "$target/credentials.json" ]; then
+    cp -p "$target/credentials.json" "$stage/credentials.json"
 fi
 
 rm -rf "$target"

@@ -1,6 +1,6 @@
 # cc-plugin-thermal-rgb
 
-**Status: phase 1 (v0.1.0): reads temperatures and resolves zones; LED writes are off by default.**
+**Status: phase 2 (v0.2.0): reads temperatures, resolves zones, and writes the temperature colour to the LEDs.**
 See [docs/PLAN.md](docs/PLAN.md).
 
 ## Install
@@ -11,9 +11,13 @@ sudo bash install.sh && sudo systemctl restart coolercontrold
 python -m thermal_rgb --config config.local.json --list   # dev: show temperature, colour and zones
 ```
 
-Settings live in `/var/lib/coolercontrol/plugins/thermal-rgb/config.json`: token, temperature
-source, colour stops, zone map, and `write_leds` (default `false` until phase 2 is verified on
-hardware).
+**Token:** open CoolerControl → Plugins → thermal-rgb, paste an access token (Access Protection →
+Access Tokens) and press *Save and restart plugin*. The plugin keeps it in `credentials.json`
+(mode 0600) and shows only `***` afterwards.
+
+Other settings live in `/var/lib/coolercontrol/plugins/thermal-rgb/config.json`: temperature
+source, colour stops, zone map, and `write_leds` (default `true`; set it to `false` to run in
+read-only/dry-run mode).
 
 A CoolerControl **integration plugin** that colours the case, fan, RAM and
 motherboard LEDs by temperature, while CoolerControl drives the fans from the
@@ -54,7 +58,7 @@ colour; LEDs appear in blocks of 8.
 ## Prior work this builds on
 
 - `RgbLighting/openrgb-cpu-thermal-sync`: Python daemon (CPU temp → OpenRGB colour), 2026-09-11.
-- `RgbLighting/MysticLight` (+ submodule `game-lighting`, branch `working-temperature-rgb`):
+- `RgbLighting/mystic-light` (+ submodule `game-lighting`, branch `working-temperature-rgb`):
   verified JARGB 1–3 and JAF zones, temperature-based Direct mode for the board and DRAM
   (stops 40 °C blue, 55 °C green, 70 °C yellow, 85 °C orange, 95 °C red, using the hotter
   of CPU and GPU), and OpenRGB release_1.0 built from source. Verified 2026-09-15, before the reinstall.
