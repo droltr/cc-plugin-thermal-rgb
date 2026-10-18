@@ -87,7 +87,10 @@ Observations worth knowing:
 
 ## Reproducing a hardware check
 
-1. Stop the installed plugin so nothing else writes the LEDs.
-2. `python -m thermal_rgb --config config.local.json --list` to confirm the zones.
+With the plugin installed (see [Usage](../README.md#usage)); `$PLUGIN` is
+`/var/lib/coolercontrol/plugins/thermal-rgb/run.sh`:
+
+1. `sudo systemctl stop cc-plugin-thermal-rgb` so nothing else writes the LEDs, and check with `systemctl status`.
+2. `sudo -u cc-plugin-user $PLUGIN --list` to confirm the zones.
 3. `--show '#ff7a00'` (and the other stops) to judge each colour, then `--sweep 45 85` for the gradient.
-4. Start the plugin again and apply load; watch the journal for the `colour (…)` summary lines.
+4. `sudo systemctl start cc-plugin-thermal-rgb`, apply load and watch the journal for the `colour (…)` summary lines.
