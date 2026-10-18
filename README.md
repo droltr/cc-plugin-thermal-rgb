@@ -11,7 +11,7 @@ fans, RAM and motherboard LEDs by CPU temperature, so the lighting shows how hot
 
 [Purpose](#purpose) · [Hardware](#hardware) · [How it works](#how-it-works) · [Installation](#installation) ·
 [Configuration](#configuration) · [Usage](#usage) · [Testing](#testing) · [Troubleshooting](#troubleshooting) ·
-[Development](#development) · [Documentation](#documentation) · [Security](#security) · [License](#license)
+[Development](#development) · [Documentation](#documentation) · [Security](#security) · [Acknowledgements](#acknowledgements) · [License](#license)
 
 ## Purpose
 
@@ -192,6 +192,14 @@ and work happens on `feature/*` and `fix/*` branches merged into `develop`; rele
 The access token grants CoolerControl API access. It is kept in `credentials.json` with mode 0600 and is
 never committed, logged or returned to the settings page. Report vulnerabilities privately as described in
 [SECURITY.md](SECURITY.md).
+
+## Acknowledgements
+
+Built on [CoolerControl](https://gitlab.com/coolercontrol/coolercontrol), [OpenRGB](https://openrgb.org) and
+[openrgb-python](https://github.com/jath03/openrgb-python). The perceptual colour blending uses the OKLab colour
+space by [Björn Ottosson](https://bottosson.github.io/posts/oklab/), and the settings page follows the approach of
+[CoolerDash](https://github.com/damachine/coolerdash). Full list with licenses:
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License
 

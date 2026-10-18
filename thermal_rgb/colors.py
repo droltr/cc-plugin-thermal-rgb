@@ -3,6 +3,8 @@
 Colours are interpolated in OKLCH (the polar form of OKLab), where equal steps look
 equally different. Interpolating in sRGB would pass through muddy greys between
 blue and yellow.
+
+The OKLab matrices follow Björn Ottosson, https://bottosson.github.io/posts/oklab/ (public domain).
 """
 
 import math

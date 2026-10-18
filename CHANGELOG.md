@@ -12,6 +12,8 @@ Documentation release; no behaviour changes.
 
 ### Added
 - `docs/troubleshooting.md`: every log message with its cause and fix, LED and settings-page checklists.
+- `THIRD_PARTY_NOTICES.md` and a README acknowledgements section crediting OKLab (Björn Ottosson), openrgb-python,
+  OpenRGB, CoolerControl and CoolerDash; source comments in `colors.py` and `ui/index.html`.
 - README: "what it does / does not do" summary, troubleshooting section; glossary in `docs/how-it-works.md`.
 
 ### Changed
