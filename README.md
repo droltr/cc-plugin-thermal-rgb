@@ -32,9 +32,10 @@ Written for, and tested only on, one machine:
 
 | | |
 |---|---|
-| Board | MSI MAG B850 TOMAHAWK MAX WIFI (Mystic Light `JARGB 1–3`) |
-| RAM | Two ENE DRAM modules |
-| CPU sensor | AMD `k10temp` Tctl |
+| Board | MSI MAG B850 TOMAHAWK MAX WIFI (MS-7E62), Mystic Light `JARGB 1–3` |
+| CPU | AMD Ryzen 7 9800X3D (`k10temp` Tctl) |
+| RAM | 2 × 32 GiB DDR5-6000 (`F5-6000J3636F32G`), lit through an ENE RGB controller on each module |
+| GPU | NVIDIA GeForce RTX 5080 (not used by this plugin) |
 | Software | Bazzite (Fedora Atomic), CoolerControl 5.0.1, OpenRGB 1.0 (Flatpak) |
 
 The plugin works wherever OpenRGB sees your LEDs, but the default zone map matches only this machine;

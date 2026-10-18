@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- Hardware documentation lists the complete reference system (CPU, RAM modules, board and BIOS, GPU,
+  other RGB devices) and clarifies that ENE is the RAM LED controller, not the memory brand.
+
 ## [0.2.1] - 2026-10-18
 
 Documentation and repository release; no behaviour changes.

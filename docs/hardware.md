@@ -9,10 +9,13 @@ below. Other hardware needs its own `zones` list ([Configuration](../README.md#c
 
 | Component | Details |
 |---|---|
-| Motherboard | MSI MAG B850 TOMAHAWK MAX WIFI (MS-7E62), Mystic Light USB `0db0:0076` |
-| LED controller | OpenRGB "761-byte" Mystic Light controller, zone-based Direct mode, one colour per zone |
-| RAM | Two ENE DRAM modules (OpenRGB addresses `0x71` and `0x73`) |
-| CPU sensor | AMD `k10temp`, `temp1` (Tctl), as reported by CoolerControl |
+| Motherboard | MSI MAG B850 TOMAHAWK MAX WIFI (MS-7E62), board revision 2.0, BIOS 2.A64 (2026-09-02) |
+| CPU | AMD Ryzen 7 9800X3D (8 cores, 16 threads); sensor `k10temp` `temp1` (Tctl) as reported by CoolerControl |
+| RAM | 2 × 32 GiB DDR5-6000 unbuffered DIMMs, dual rank, in slots `DIMMA2` and `DIMMB2`; part number `F5-6000J3636F32G` (the SPD reports no manufacturer, the number follows G.Skill's `F5-` DDR5 naming); running at 6000 MT/s, 1.1 V |
+| RAM lighting | One **ENE** SMBus RGB controller per module (OpenRGB addresses `0x71` and `0x73`, 8 LEDs each). ENE is the LED chip, not the memory brand |
+| Board lighting | Mystic Light USB `0db0:0076`, OpenRGB "761-byte" controller, zone-based Direct mode, one colour per zone: `JAF`, `JARGB 1`, `JARGB 2`, `JARGB 3` (32 LEDs in total) |
+| Graphics | NVIDIA GeForce RTX 5080 (16 GB, driver 615.78) and the CPU's integrated AMD Radeon; neither is read or lit by this plugin |
+| Other RGB devices seen by OpenRGB | SteelSeries Rival 5 mouse and Apex Pro keyboard; not touched |
 | Operating system | Bazzite (Fedora Atomic), Linux 7.2 |
 | CoolerControl | 5.0.1 (integration plugin, REST API on `127.0.0.1:11987`) |
 | OpenRGB | 1.0 (Flatpak `org.openrgb.OpenRGB`) run as a headless SDK server on `127.0.0.1:6742` |
@@ -24,8 +27,8 @@ below. Other hardware needs its own `zones` list ([Configuration](../README.md#c
 |---|---|---|
 | `rear_1` | MSI MYSTIC LIGHT / `JARGB 1` | Rear fan 1 |
 | `rear_2` | MSI MYSTIC LIGHT / `JARGB 2` | Rear fan 2 |
-| `ram_1` | ENE DRAM at `address 0x71` (whole device) | RAM module 1 |
-| `ram_2` | ENE DRAM at `address 0x73` (whole device) | RAM module 2 |
+| `ram_1` | ENE DRAM controller at `address 0x71` (whole device) | RAM module 1 |
+| `ram_2` | ENE DRAM controller at `address 0x73` (whole device) | RAM module 2 |
 | `front` | MSI MYSTIC LIGHT / `JARGB 3` | CPU block, CPU cooler fans and front fans on one chain |
 
 The order is rear to front, which the planned heat-wave theme will use. LEDs on the Mystic Light
