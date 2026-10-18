@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `LICENSE` (GPL-3.0-or-later), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
+  `SECURITY.md`, issue forms and a pull request template.
+
+### Changed
+- Maintainer notes, plans and machine-specific setup files are no longer tracked (kept locally, listed in
+  `.gitignore`); the repository holds only code, tests, packaging and user-facing documentation.
+- Documentation added under `docs/`: tested hardware and zone map, how it works, testing.
+- README rewritten to match the code: requirements, installation, token setup, configuration
+  reference, command-line tools and development workflow.
+- License, author and project URLs added to `pyproject.toml` and `manifest.toml`.
+
 ## [0.2.0] - 2026-10-18
 
 Changes since 0.1.0 (the dry-run release that only read temperatures).
@@ -13,7 +25,7 @@ Changes since 0.1.0 (the dry-run release that only read temperatures).
 ### Added
 - Phase 2: the temperature colour is written to the LEDs, plus `--sweep` (gradient preview) and
   `--show HEX` (hold one colour) for checking colours by eye; the four colour stops were approved
-  on the owner's hardware.
+  on the reference system.
 - Settings page (`ui/index.html`) to enter the CoolerControl access token from the plugin's page
   in CoolerControl. The plugin moves the token into `credentials.json` (mode 0600) and leaves `***`
   in `config.json`, so the page never shows it again. `install.sh` ships `ui/` and keeps `credentials.json`.
