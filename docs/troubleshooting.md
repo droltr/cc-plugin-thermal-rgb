@@ -18,7 +18,7 @@ by itself without restarting CoolerControl.
 | `Not ready (… Connection refused)` | CoolerControl (`11987`) or the OpenRGB SDK server (`6742`) is not running | Check `systemctl status coolercontrold`; for OpenRGB see [OpenRGB server](../README.md#installation) |
 | `Not ready (no CPU device reported by CoolerControl)` | CoolerControl lists no device of type CPU | Set `temp_device_uid` in `config.json` to the sensor device you want |
 | `Not ready (temperature 'temp1' not found for device …)` | The sensor name does not exist on that device | Set `temp_name` (compare with the sensors shown in CoolerControl) |
-| `zone 'x' not found (device=…, zone=…, location=…) (skipped)` | A configured zone does not match any OpenRGB device | Run `python -m thermal_rgb --config config.local.json --list` and copy the exact device and zone names |
+| `zone 'x' not found (device=…, zone=…, location=…) (skipped)` | A configured zone does not match any OpenRGB device | Run `sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --list` and copy the exact device and zone names |
 | `Connected: 0 zones resolved` | No zone matched, so nothing can change colour | Same as above; the default zone map fits only the reference system |
 | `Invalid configuration: …` | `config.json` is malformed or a value is out of range | Fix the key named in the message ([Configuration](../README.md#configuration)) |
 | `Temperature read failed: …` | A temperature request failed while running | Transient errors recover on their own; a repeating one points to CoolerControl |
@@ -32,7 +32,8 @@ by itself without restarting CoolerControl.
    as before, the temperature is still inside the same band, so nothing needs to change.
 4. Another program writes the same LEDs (the OpenRGB window with effects, another plugin or script).
    Close it; two writers make the colours flicker or jump.
-5. Check the colour by hand with the plugin stopped: `python -m thermal_rgb --config config.local.json --show '#ff0000'`.
+5. Check the colour by hand: `sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --show '#ff0000'`
+   (stop the service first for a longer check, see [Usage](../README.md#usage)).
 
 ## The settings page
 
@@ -43,5 +44,5 @@ by itself without restarting CoolerControl.
 
 ## Collecting information for an issue
 
-Include the plugin version (`python -m thermal_rgb --version`), your CoolerControl and OpenRGB versions, the
+Include the plugin version (`sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --version`), your CoolerControl and OpenRGB versions, the
 output of `--list` and the log lines above. Remove any token before posting.

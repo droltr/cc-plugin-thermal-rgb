@@ -38,7 +38,7 @@ temperature colour.
 ## Using other hardware
 
 1. Make sure OpenRGB detects your devices and run the SDK server.
-2. List what the plugin can see: `python -m thermal_rgb --config config.local.json --list`. It prints the
+2. List what the plugin can see: `sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --list` (from a source checkout: `python -m thermal_rgb --config config.local.json --list`, see [Usage](../README.md#usage)). It prints the
    CPU temperature and every configured zone as `name -> device N zone M (K LEDs)`.
 3. Write your own `zones` entries (`name`, `device`, optional `zone` and `location` substrings) and, if your
    CPU sensor is not the first CPU device's `temp1`, set `temp_device_uid` and `temp_name`.

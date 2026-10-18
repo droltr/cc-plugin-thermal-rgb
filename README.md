@@ -133,17 +133,34 @@ An invalid file is rejected at start with `Invalid configuration: …` in the jo
 CoolerControl runs the plugin as the `cc-plugin-thermal-rgb` systemd service. Follow its log with
 `journalctl -f -t run.sh | grep thermal_rgb`.
 
-For development or colour checks, run the module against a local config file:
+**Check the installed plugin.** Run it as the plugin user through its launcher, which supplies the installed
+configuration, token and virtual environment:
 
 ```bash
-python -m thermal_rgb --config config.local.json --list            # temperature, colour and zones
-python -m thermal_rgb --config config.local.json --sweep 45 85     # play the gradient on the LEDs once
-python -m thermal_rgb --config config.local.json --show '#ff7a00'  # hold one colour
-python -m thermal_rgb --version
+PLUGIN=/var/lib/coolercontrol/plugins/thermal-rgb/run.sh
+sudo -u cc-plugin-user $PLUGIN --list          # temperature, colour and the zones it can see (read-only)
+sudo -u cc-plugin-user $PLUGIN --version
 ```
 
-`--sweep` and `--show` write to the LEDs even when `write_leds` is `false`; stop the installed plugin first
-or the two will compete.
+`--list` only reads. `--show` and `--sweep` write to the LEDs:
+
+```bash
+sudo -u cc-plugin-user $PLUGIN --show '#ff7a00'   # hold one colour on all zones
+sudo -u cc-plugin-user $PLUGIN --sweep 45 85      # play the gradient on the LEDs once
+```
+
+The running plugin writes only when the temperature colour changes, so a manual colour stays until then. For a
+longer colour check stop the service first (`sudo systemctl stop cc-plugin-thermal-rgb`), start it again
+afterwards, and confirm with `systemctl status` that CoolerControl has not restarted it in between.
+
+**Run from a source checkout** (development). Create the environment, then create `config.local.json` in an editor
+(not with `echo`, so the token stays out of your shell history) containing `{"coolercontrol_token": "<your token>"}`.
+The file and the `credentials.json` it is moved to on the first run are git-ignored:
+
+```bash
+python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+python -m thermal_rgb --config config.local.json --list
+```
 
 ## Testing
 
