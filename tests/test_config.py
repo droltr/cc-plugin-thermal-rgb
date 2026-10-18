@@ -6,7 +6,7 @@ import pytest
 from thermal_rgb.config import ConfigError, load_config, parse_config
 
 
-def test_defaults_match_owner_decisions() -> None:
+def test_defaults_match_documented_values() -> None:
     cfg = parse_config({})
     assert [s.temp_c for s in cfg.stops] == [50, 60, 70, 80]
     assert cfg.stops[0].rgb == (0x20, 0x60, 0xFF)

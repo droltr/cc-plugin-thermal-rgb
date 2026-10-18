@@ -7,6 +7,14 @@ build/
 dist/
 *.log
 
+# Local-only workspace files (maintainer notes, plans, machine-specific setup, agent config)
+coding.md
+.claudeignore
+docs/PLAN.md
+docs/REQUESTS.md
+docs/SETTINGS-UI-PLAN.md
+docs/setup/
+
 # Local secrets
 config.local.json
 credentials.json
