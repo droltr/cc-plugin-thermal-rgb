@@ -1,0 +1,14 @@
+name: Feature request
+description: Suggest a theme, setting or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to achieve?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed behaviour

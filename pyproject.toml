@@ -3,6 +3,15 @@ name = "cc-plugin-thermal-rgb"
 dynamic = ["version"]
 description = "CoolerControl integration plugin: temperature-driven RGB via OpenRGB"
 requires-python = ">=3.10"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "droltr" }]
+
+[project.urls]
+Homepage = "https://github.com/droltr/cc-plugin-thermal-rgb"
+Issues = "https://github.com/droltr/cc-plugin-thermal-rgb/issues"
+Changelog = "https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/CHANGELOG.md"
 
 [tool.ruff]
 line-length = 100

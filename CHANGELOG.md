@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `LICENSE` (GPL-3.0-or-later), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
+  `SECURITY.md`, issue forms and a pull request template.
+
+### Changed
+- README rewritten to match the code: requirements, installation, token setup, configuration
+  reference, command-line tools and development workflow.
+- License, author and project URLs added to `pyproject.toml` and `manifest.toml`.
+
 ## [0.2.0] - 2026-10-18
 
 Changes since 0.1.0 (the dry-run release that only read temperatures).

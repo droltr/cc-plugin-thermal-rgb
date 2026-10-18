@@ -6,3 +6,5 @@ url = "https://github.com/droltr/cc-plugin-thermal-rgb"
 description = "Colours fans, RAM and motherboard LEDs by CPU temperature through OpenRGB."
 executable = "/var/lib/coolercontrol/plugins/thermal-rgb/run.sh"
 privileged = false
+author = "droltr"
+license = "GPL-3.0-or-later"
