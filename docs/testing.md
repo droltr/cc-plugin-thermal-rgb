@@ -24,6 +24,13 @@ push to `main` and `develop` and on every pull request.
 
 Tests use fake OpenRGB and CoolerControl clients, so no server, LED or token is needed.
 
+## Update check
+
+`tests/test_updates.py` covers version parsing and comparison (including `0.9.0` < `0.10.0` and pre-release tags), the
+GitHub request (headers, release URL fallback), failures that must not break the plugin, the 12-hourly loop, the
+status publisher that keeps the update block through every state, and the `update_check` switch. The real request to
+GitHub is not part of the automated tests; it is verified by hand in the user test guide (session 002).
+
 ## User test guide
 
 Changes that a person can observe are also verified by the user through an interactive guide that belongs to this

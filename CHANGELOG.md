@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-18
+
+### Added
+- Info tab restructured like CoolerDash's: **Version & Update** (installed version, latest GitHub release with up to date /
+  update available / newer build, last checked, *Check again*), **About** (project, what it does, author, repository,
+  license, language, credits, how it works, tested hardware, troubleshooting), **Community & Feedback** and **System
+  Environment** (platform, kernel, CoolerControl, Python and openrgb-python versions).
+- Update check: the plugin looks up the latest GitHub release at start and every 12 hours (`thermal_rgb/updates.py`) and
+  publishes the result in `_status.update`; `update_check: false` turns it off. Links from the status are only followed
+  when they point into this repository.
+- `StatusPublisher` keeps the update and environment blocks through every state; 20 new tests (112 in total).
+
 ## [0.3.0] - 2026-10-18
 
 ### Added

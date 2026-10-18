@@ -5,8 +5,11 @@ CoolerControl plugin pages can only read the plugin's config.json, so the plugin
 shows it on the Info tab. The block is rewritten only when it changes.
 """
 
+import importlib.metadata
 import json
 import logging
+import platform
+import threading
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -31,6 +34,7 @@ def _base(cfg: Config, state: str) -> dict[str, Any]:
         "version": __version__,
         "token_stored": bool(cfg.coolercontrol_token),
         "write_leds": cfg.write_leds,
+        "update_check": cfg.update_check,
         "openrgb": {"host": cfg.openrgb_host, "port": cfg.openrgb_port},
         "temp_name": cfg.temp_name,
         "updated": _now(),
@@ -84,3 +88,42 @@ def _same(old: dict[str, Any], new: dict[str, Any]) -> bool:
     return {k: v for k, v in old.items() if k != "updated"} == {
         k: v for k, v in new.items() if k != "updated"
     }
+
+
+def environment_info() -> dict[str, Any]:
+    """Versions of what the plugin runs on; shown on the Info tab."""
+    try:
+        openrgb_python = importlib.metadata.version("openrgb-python")
+    except importlib.metadata.PackageNotFoundError:
+        openrgb_python = None
+    return {
+        "platform": platform.system(),
+        "kernel": platform.release(),
+        "python": platform.python_version(),
+        "openrgb_python": openrgb_python,
+    }
+
+
+class StatusPublisher:
+    """Publishes statuses and keeps extra blocks (update check, environment) in every one of them.
+
+    The update check finishes at any time, even while the main loop is waiting for a dependency, so
+    its result must survive the next publish of a different state.
+    """
+
+    def __init__(self, path: Path | None) -> None:
+        self.path = path
+        self._extras: dict[str, Any] = {}
+        self._last: dict[str, Any] | None = None
+        self._lock = threading.Lock()
+
+    def publish(self, status: dict[str, Any]) -> bool:
+        with self._lock:
+            self._last = status
+            return publish_status(self.path, {**status, **self._extras})
+
+    def add(self, key: str, value: Any) -> None:
+        with self._lock:
+            self._extras[key] = value
+            if self._last is not None:
+                publish_status(self.path, {**self._last, **self._extras})

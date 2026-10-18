@@ -159,7 +159,7 @@ def test_main_logs_version_on_start(tmp_path: Path, caplog: pytest.LogCaptureFix
     with (
         caplog.at_level("INFO"),
         patch("sys.argv", ["thermal_rgb", "--config", str(tmp_path / "none.json")]),
-        patch.object(app, "run", lambda cfg, stop, status_path=None: 0),
+        patch.object(app, "run", lambda cfg, stop, publisher=None: 0),
     ):
         assert app.main() == 0
     assert f"thermal-rgb {app.__version__} starting" in caplog.text
@@ -168,7 +168,7 @@ def test_main_logs_version_on_start(tmp_path: Path, caplog: pytest.LogCaptureFix
 def test_main_retries_until_ready(tmp_path: Path) -> None:
     attempts = {"n": 0}
 
-    def fake_run(cfg: object, stop: threading.Event, status_path: object = None) -> int:
+    def fake_run(cfg: object, stop: threading.Event, publisher: object = None) -> int:
         attempts["n"] += 1
         if attempts["n"] == 1:
             raise ConnectionError("openrgb not up")

@@ -111,6 +111,7 @@ keys use the defaults below.
 | `poll_interval_s` | `1.0` | Polling interval, 0.2–60 s |
 | `smoothing_tau_s` | `3.0` | Smoothing time constant; `0` disables smoothing |
 | `write_leds` | `true` | `false` reads and resolves only (dry run) |
+| `update_check` | `true` | Look for a newer GitHub release at start and every 12 hours (one anonymous request to the public releases API, only a User-Agent with the plugin name and version is sent); `false` turns it off |
 | `stops` | the four stops above | List of `{temp_c, color}` |
 | `zones` | five zones, rear to front | List of `{name, device, zone?, location?}` |
 
@@ -135,7 +136,7 @@ An invalid file is rejected at start with `Invalid configuration: …` in the jo
 
 | Tab | Shows |
 |---|---|
-| **Info** | Plugin state (running, waiting, stopped), version, token and OpenRGB status, last error with a hint; the live CPU temperature with the colour it maps to on a gradient bar; the colour stops; the LED zones the plugin is using and the ones it could not find; a short about text, troubleshooting table, links, license and credits |
+| **Info** | Plugin state (running, waiting, stopped), token and OpenRGB status, last error with a hint; **Version & Update** (installed version, latest GitHub release, up to date or update available); the live CPU temperature with the colour it maps to on a gradient bar; the colour stops; the LED zones the plugin is using and the ones it could not find; **About** (project, what it does, author, repository, license, credits, how it works, tested hardware, troubleshooting); **Community & Feedback** links; **System Environment** (platform, kernel, CoolerControl, Python and openrgb-python versions) |
 | **API Settings** | Entry of the CoolerControl access token (see [Installation](#installation)) |
 
 The plugin reports its state by writing a read-only `_status` block into `config.json` when it starts, waits or
@@ -158,7 +159,7 @@ or the two will compete.
 
 ## Testing
 
-92 automated tests (98 % coverage, no hardware needed) run in CI on every push and pull request. The
+112 automated tests (98 % coverage, no hardware needed) run in CI on every push and pull request. The
 colours and the temperature response were also checked by eye on the reference machine: device discovery,
 each colour stop, a CPU heat test from blue to red and back, and the token flow. What was and was not
 verified is listed in [docs/testing.md](docs/testing.md).

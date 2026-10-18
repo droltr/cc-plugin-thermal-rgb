@@ -60,6 +60,7 @@ class Config:
     poll_interval_s: float = 1.0
     smoothing_tau_s: float = 3.0
     write_leds: bool = True
+    update_check: bool = True
     stops: tuple[ColorStop, ...] = field(default_factory=tuple)
     zones: tuple[ZoneRef, ...] = field(default_factory=tuple)
 
@@ -103,6 +104,7 @@ def parse_config(raw: dict[str, Any]) -> Config:
         poll_interval_s=poll,
         smoothing_tau_s=float(raw.get("smoothing_tau_s", 3.0)),
         write_leds=bool(raw.get("write_leds", True)),
+        update_check=bool(raw.get("update_check", True)),
         stops=stops,
         zones=zones,
     )

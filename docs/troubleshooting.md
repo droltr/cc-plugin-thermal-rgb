@@ -21,6 +21,7 @@ by itself without restarting CoolerControl.
 | `zone 'x' not found (device=…, zone=…, location=…) (skipped)` | A configured zone does not match any OpenRGB device | Run `python -m thermal_rgb --config config.local.json --list` and copy the exact device and zone names |
 | `Connected: 0 zones resolved` | No zone matched, so nothing can change colour | Same as above; the default zone map fits only the reference system |
 | `Invalid configuration: …` | `config.json` is malformed or a value is out of range | Fix the key named in the message ([Configuration](../README.md#configuration)) |
+| Info tab: *Could not check* under Version & Update | The plugin could not reach `api.github.com` (offline, firewall) or hit the anonymous rate limit | Harmless; the plugin retries every 12 hours. Use *Check again* to retry now, or look at the releases page. Set `"update_check": false` to stop checking |
 | `Temperature read failed: …` | A temperature request failed while running | Transient errors recover on their own; a repeating one points to CoolerControl |
 | `Could not move the token to credentials.json (…); using it from config` | The plugin folder is not writable by the plugin user | The token still works, but stays in `config.json`; check the folder permissions |
 

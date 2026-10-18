@@ -83,6 +83,9 @@ through it. On start-up, while it waits for a dependency, and on shutdown it wri
   "temp_device_uid": "…", "temp_name": "temp1",
   "zones": [{"name": "rear_1", "device": "MSI MYSTIC LIGHT", "zone": "JARGB 1", "leds": 8}],
   "zones_unresolved": ["ram_1"],
+  "update_check": true,
+  "environment": {"platform": "Linux", "kernel": "7.2.9", "python": "3.14.8", "openrgb_python": "0.3.8"},
+  "update": {"status": "up_to_date", "latest": "v0.3.1", "url": "…/releases/tag/v0.3.1", "checked_at": "…"},
   "error": "…",                  // only while waiting
   "updated": "2026-10-18T05:00:00+00:00"
 }
@@ -93,6 +96,16 @@ a plugin that keeps failing does not rewrite the file every retry. The **Info** 
 the live CPU temperature itself from CoolerControl through the plugin library; the colour on its gradient bar
 is computed in the browser with the same OKLCH blend as the plugin (checked against `colors.py` for 140
 temperatures).
+
+## Update check
+
+CoolerControl plugin pages cannot call external sites from their sandboxed iframe, so the plugin itself asks the public
+GitHub releases API (`GET /repos/droltr/cc-plugin-thermal-rgb/releases/latest`) once at start and then every 12 hours, in
+a background thread that never blocks the LEDs. It compares the latest tag with the running version
+(`thermal_rgb/updates.py`) and publishes the result in `_status.update`: `up_to_date`, `update_available`, `ahead` (a
+build newer than the last release) or `unknown` with an error when the request failed. The request is anonymous and
+carries only a User-Agent with the plugin name and version; set `"update_check": false` to turn it off. The page shows
+the result under **Version & Update** and only links to this repository's release pages. Pre-release tags are ignored.
 
 ## Token handling
 
@@ -111,5 +124,6 @@ If the folder is not writable, the plugin still uses the token from the config a
 | `thermal_rgb/colors.py` | OKLCH gradient, hex parsing |
 | `thermal_rgb/engine.py` | Smoothing and the temperature-bands theme, change filter |
 | `thermal_rgb/openrgb_link.py` | OpenRGB connection and zone resolution |
-| `thermal_rgb/status.py` | Builds and publishes the `_status` block |
+| `thermal_rgb/status.py` | Builds and publishes the `_status` block (`StatusPublisher` keeps the update and environment blocks in every state) |
+| `thermal_rgb/updates.py` | Update check against the latest GitHub release |
 | `ui/index.html` | Plugin page: Info tab and API Settings tab |

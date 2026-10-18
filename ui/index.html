@@ -136,7 +136,17 @@
             font: inherit;
             cursor: pointer;
         }
-        .primary:disabled { opacity: 0.5; cursor: default; }
+        .primary:disabled, .secondary:disabled { opacity: 0.5; cursor: default; }
+        .secondary {
+            margin-top: 12px;
+            padding: 6px 14px;
+            color: rgb(var(--text-color));
+            background: none;
+            border: 1px solid rgb(var(--border-one));
+            border-radius: 6px;
+            font: inherit;
+            cursor: pointer;
+        }
         #status-line { margin-top: 12px; font-size: 13px; min-height: 1.4em; }
         #status-line.ok { color: rgb(var(--success)); }
         #status-line.err { color: rgb(var(--error)); }
@@ -163,6 +173,17 @@
             <h2>Status</h2>
             <dl class="kv" id="status-grid"></dl>
             <div class="notice" id="status-hint" hidden></div>
+        </div>
+
+        <div class="card">
+            <h2>Version &amp; Update</h2>
+            <dl class="kv">
+                <dt>Installed</dt><dd id="ver-installed">&ndash;</dd>
+                <dt>Latest release</dt><dd id="ver-latest">&ndash;</dd>
+                <dt>Last checked</dt><dd id="ver-checked">&ndash;</dd>
+            </dl>
+            <button class="secondary" id="ver-recheck" type="button">Check again (restarts the plugin)</button>
+            <p id="ver-note"></p>
         </div>
 
         <div class="card">
@@ -194,9 +215,15 @@
 
         <div class="card">
             <h2>About</h2>
-            <p>This plugin reads the CPU temperature from CoolerControl, the same sensor your fan curves use, and writes
-               the matching colour to the LEDs of the zones you configure, through the OpenRGB SDK server. It never
-               changes fan speeds or other CoolerControl settings, and it does not touch devices outside its zones.</p>
+            <dl class="kv">
+                <dt>Plugin</dt><dd>Thermal RGB (<code>cc-plugin-thermal-rgb</code>)</dd>
+                <dt>What it does</dt><dd>Colours your case fans, RAM and motherboard LEDs by CPU temperature, from blue (cool) to red (hot). It reads the same sensor your fan curves use and writes the matching colour through the OpenRGB SDK server. It never changes fan speeds or other CoolerControl settings, and it does not touch devices outside its zones.</dd>
+                <dt>Author</dt><dd><a href="https://github.com/droltr" target="_blank" rel="noopener noreferrer">droltr</a></dd>
+                <dt>Repository</dt><dd><a href="https://github.com/droltr/cc-plugin-thermal-rgb" target="_blank" rel="noopener noreferrer">github.com/droltr/cc-plugin-thermal-rgb</a></dd>
+                <dt>License</dt><dd>GPL-3.0-or-later. Copyright &copy; 2026 droltr.</dd>
+                <dt>Language</dt><dd id="about-language">Python</dd>
+                <dt>Credits</dt><dd>Built on CoolerControl, OpenRGB and openrgb-python; colour blending uses the OKLab colour space by Bj&ouml;rn Ottosson. <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Third-party notices</a>.</dd>
+            </dl>
             <details>
                 <summary>How it works</summary>
                 <ol>
@@ -229,17 +256,24 @@
         </div>
 
         <div class="card">
-            <h2>Links, license and credits</h2>
-            <ul>
-                <li><a href="https://github.com/droltr/cc-plugin-thermal-rgb" target="_blank" rel="noopener noreferrer">Project on GitHub</a>
-                    &middot; <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a>
-                    &middot; <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/docs/troubleshooting.md" target="_blank" rel="noopener noreferrer">Troubleshooting guide</a></li>
-                <li><a href="https://github.com/droltr/cc-plugin-thermal-rgb/releases" target="_blank" rel="noopener noreferrer">Releases</a>
-                    &middot; <a href="https://github.com/droltr/cc-plugin-thermal-rgb/issues/new/choose" target="_blank" rel="noopener noreferrer">Report a problem</a></li>
-                <li>License: GPL-3.0-or-later. Copyright &copy; 2026 droltr.</li>
-                <li>Built on CoolerControl, OpenRGB and openrgb-python; colour blending uses the OKLab colour space by
-                    Bj&ouml;rn Ottosson. Full list: <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">third-party notices</a>.</li>
-            </ul>
+            <h2>Community &amp; Feedback</h2>
+            <dl class="kv">
+                <dt>Bug reports and ideas</dt><dd><a href="https://github.com/droltr/cc-plugin-thermal-rgb/issues/new/choose" target="_blank" rel="noopener noreferrer">GitHub Issues</a></dd>
+                <dt>Releases</dt><dd><a href="https://github.com/droltr/cc-plugin-thermal-rgb/releases" target="_blank" rel="noopener noreferrer">Release notes and downloads</a></dd>
+                <dt>Documentation</dt><dd><a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a> &middot; <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/docs/troubleshooting.md" target="_blank" rel="noopener noreferrer">Troubleshooting guide</a></dd>
+                <dt>Security</dt><dd><a href="https://github.com/droltr/cc-plugin-thermal-rgb/security/advisories/new" target="_blank" rel="noopener noreferrer">Report a vulnerability privately</a></dd>
+            </dl>
+        </div>
+
+        <div class="card">
+            <h2>System Environment</h2>
+            <dl class="kv">
+                <dt>Platform</dt><dd id="env-platform">&ndash;</dd>
+                <dt>Kernel</dt><dd id="env-kernel">&ndash;</dd>
+                <dt>CoolerControl</dt><dd id="env-cc">&ndash;</dd>
+                <dt>Python</dt><dd id="env-python">&ndash;</dd>
+                <dt>openrgb-python</dt><dd id="env-openrgb">&ndash;</dd>
+            </dl>
         </div>
     </section>
 
@@ -482,11 +516,97 @@
             : 'Each zone shows the same temperature colour.';
     }
 
+
+    // ---- Version & Update, System Environment ---------------------------------------------------------------
+    var REPO_URL = 'https://github.com/droltr/cc-plugin-thermal-rgb';
+    var RELEASES_URL = REPO_URL + '/releases';
+
+    // The status block comes from config.json, so a link from it is only used when it points into this repository.
+    function safeReleaseUrl(url) {
+        return typeof url === 'string' && url.indexOf(REPO_URL + '/') === 0 ? url : RELEASES_URL;
+    }
+    function link(text, href) {
+        var a = document.createElement('a');
+        a.textContent = text; a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        return a;
+    }
+    function setValue(id, text) { $(id).textContent = text; }
+
+    function renderUpdate() {
+        var st = config._status || {}, up = st.update, box = $('ver-latest');
+        clear(box);
+        $('ver-installed').textContent = st.version ? 'v' + st.version : 'not reported yet';
+        $('ver-checked').textContent = up && up.checked_at ? formatTime(up.checked_at) : '–';
+        $('ver-note').textContent = '';
+        if (st.update_check === false) {
+            box.append('Update check is turned off (update_check is false in config.json). ', link('Check releases', RELEASES_URL));
+            return;
+        }
+        if (!up) {
+            box.append('Checking… the plugin checks after it starts and every 12 hours. ', link('Check releases', RELEASES_URL));
+            return;
+        }
+        var tag = String(up.latest || ''), url = safeReleaseUrl(up.url), strong = el('strong', '');
+        if (up.status === 'update_available') {
+            strong.textContent = tag + ' available'; strong.style.color = 'rgb(var(--warning))';
+            box.append(strong, ' — ', link('View release', url));
+            $('ver-note').textContent = 'Update with: sudo bash install.sh from the new version’s folder, then restart CoolerControl.';
+        } else if (up.status === 'up_to_date') {
+            strong.textContent = tag + ' ✓ up to date'; strong.style.color = 'rgb(var(--success))';
+            box.append(strong, ' — ', link('Release', url));
+        } else if (up.status === 'ahead') {
+            box.append(tag + ' is the latest published release; you run a newer build. ', link('Release', url));
+        } else {
+            box.append('Could not check' + (up.error ? ' (' + up.error + ')' : '') + '. ', link('Check releases', RELEASES_URL));
+        }
+    }
+
+    async function recheck() {
+        var button = $('ver-recheck');
+        button.disabled = true;
+        $('ver-note').textContent = 'Restarting the plugin; it checks for updates when it starts…';
+        try {
+            await restartPlugin();
+            await new Promise(function (resolve) { setTimeout(resolve, 8000); });
+            config = normalize(await getPluginConfig());
+            renderUpdate(); renderStatus();
+        } catch (err) {
+            $('ver-note').textContent = 'Could not restart the plugin: ' + (err && err.message ? err.message : err);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    async function renderEnvironment() {
+        var env = (config._status || {}).environment || {};
+        setValue('env-platform', env.platform || '–');
+        setValue('env-kernel', env.kernel || '–');
+        setValue('env-python', env.python || '–');
+        setValue('env-openrgb', env.openrgb_python || '–');
+        setValue('about-language', env.python ? 'Python ' + env.python : 'Python');
+        try {
+            // Same source CoolerDash uses: the CoolerControl and Kernel pseudo-devices carry their versions.
+            var devices = await getDevices(), cc = '', kernel = '';
+            (devices || []).forEach(function (d) {
+                var drv = d && d.info && d.info.driver_info;
+                if (!drv || !drv.version) return;
+                if (drv.drv_type === 'CoolerControl' && !cc) cc = drv.version;
+                if (drv.drv_type === 'Kernel' && !kernel) kernel = drv.version;
+            });
+            setValue('env-cc', cc || '–');
+            if (kernel) setValue('env-kernel', kernel);
+        } catch (e) {
+            setValue('env-cc', '–');
+        }
+    }
+
     var tempTimer = null;
     async function refreshInfo() {
         var scale = renderStops();
         renderStatus();
+        renderUpdate();
         renderZones();
+        renderEnvironment();
         renderTemperature(await readCpuTemp(), scale);
     }
     function startInfoRefresh() {
@@ -542,6 +662,7 @@
     $('tab-info').addEventListener('click', function () { selectTab('info'); });
     $('tab-api').addEventListener('click', function () { selectTab('api'); });
     saveButton.addEventListener('click', save);
+    $('ver-recheck').addEventListener('click', recheck);
 
     window.ThermalRgbPage = { gradientAt: gradientAt, normalizeStops: normalizeStops, hexToRgb: hexToRgb, normalize: normalize };
 

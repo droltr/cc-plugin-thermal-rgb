@@ -9,7 +9,13 @@ from thermal_rgb import __main__ as app
 from thermal_rgb import __version__
 from thermal_rgb.config import ZoneRef, parse_config
 from thermal_rgb.openrgb_link import ResolvedZone
-from thermal_rgb.status import publish_status, running_status, stopped_status, waiting_status
+from thermal_rgb.status import (
+    StatusPublisher,
+    publish_status,
+    running_status,
+    stopped_status,
+    waiting_status,
+)
 
 
 def _zones() -> list[ResolvedZone]:
@@ -78,7 +84,7 @@ def test_run_publishes_running_status(tmp_path: Path) -> None:
         patch.object(app, "CoolerControlClient", FakeCC),
         patch.object(app, "connect", lambda h, p: FakeClient()),
     ):
-        assert app.run(parse_config({}), stop, path) == 0
+        assert app.run(parse_config({}), stop, StatusPublisher(path)) == 0
     status = json.loads(path.read_text(encoding="utf-8"))["_status"]
     assert status["state"] == "running"
     assert [z["name"] for z in status["zones"]] == ["rear_1", "rear_2", "ram_1", "ram_2", "front"]
@@ -90,7 +96,7 @@ def test_main_publishes_waiting_then_stopped(tmp_path: Path) -> None:
     seen: list[str] = []
     calls = {"n": 0}
 
-    def fake_run(cfg: object, stop: threading.Event, status_path: Path | None = None) -> int:
+    def fake_run(cfg: object, stop: threading.Event, publisher: object = None) -> int:
         calls["n"] += 1
         if calls["n"] == 1:
             raise ConnectionError("openrgb not up")

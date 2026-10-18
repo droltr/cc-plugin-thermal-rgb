@@ -1,0 +1,359 @@
+{
+ "project": "cc-plugin-thermal-rgb",
+ "guide": "cc-plugin-thermal-rgb:002-2026-10-18-version-update-about",
+ "title": "Thermal RGB: Version, update check and About",
+ "change": "Info tab: Version & Update, About, Community & Feedback, System Environment; GitHub update check (task T15)",
+ "target": "thermal-rgb v0.3.1 (branch feature/info-page, installed 2026-10-18)",
+ "target_version": "0.3.1",
+ "setup": "<p><b>Setup:</b> the plugin v0.3.1 is installed in CoolerControl 5.0.1 with a valid access token and the PC can reach the internet. The latest published GitHub release is <b>v0.2.1</b>, so the page should say you run a <b>newer build</b>. Commands need <code>sudo</code>. Tests marked <b>optional</b> change something temporarily; read their note first. This session tests only the new Info sections; session 001 (rehearsal) covered the rest of the page.</p>",
+ "preflight": [
+  {
+   "id": "src-version",
+   "title": "Source tree is version {{target_version}}",
+   "argv": [
+    "python3",
+    "-I",
+    "-c",
+    "import re;print(re.search(r'__version__ = \"([^\"]+)\"',open('thermal_rgb/__init__.py').read()).group(1))"
+   ],
+   "expect": "^{{target_version}}$",
+   "hint": "The tests describe another version than the code in this folder; check the branch or create a new test session."
+  },
+  {
+   "id": "src-manifest",
+   "title": "manifest.toml says {{target_version}}",
+   "argv": [
+    "grep",
+    "^version",
+    "manifest.toml"
+   ],
+   "expect": "version = \"{{target_version}}\"",
+   "hint": "Bump the version in manifest.toml and __init__.py together."
+  },
+  {
+   "id": "git",
+   "title": "Branch and uncommitted changes (info)",
+   "info": true,
+   "argv": [
+    "git",
+    "status",
+    "--short",
+    "--branch"
+   ]
+  },
+  {
+   "id": "installed-version",
+   "title": "Installed plugin is version {{target_version}}",
+   "argv": [
+    "grep",
+    "^version",
+    "/var/lib/coolercontrol/plugins/thermal-rgb/manifest.toml"
+   ],
+   "expect": "version = \"{{target_version}}\"",
+   "hint": "Install it: sudo bash install.sh && sudo systemctl restart coolercontrold"
+  },
+  {
+   "id": "installed-code",
+   "title": "Installed code is identical to the source tree",
+   "argv": [
+    "diff",
+    "-rq",
+    "--exclude=__pycache__",
+    "thermal_rgb",
+    "/var/lib/coolercontrol/plugins/thermal-rgb/lib/thermal_rgb"
+   ],
+   "hint": "The installed copy is stale or edited. Re-run install.sh and restart coolercontrold."
+  },
+  {
+   "id": "installed-ui",
+   "title": "Installed plugin page is identical to the source tree",
+   "argv": [
+    "diff",
+    "-q",
+    "ui/index.html",
+    "/var/lib/coolercontrol/plugins/thermal-rgb/ui/index.html"
+   ],
+   "hint": "Re-run install.sh; CoolerControl serves the installed page."
+  },
+  {
+   "id": "service",
+   "title": "Plugin service is active",
+   "argv": [
+    "systemctl",
+    "is-active",
+    "cc-plugin-thermal-rgb"
+   ],
+   "expect": "^active$",
+   "hint": "Restart CoolerControl: sudo systemctl restart coolercontrold"
+  },
+  {
+   "id": "openrgb",
+   "title": "OpenRGB SDK server is listening on 6742",
+   "argv": [
+    "ss",
+    "-ltn"
+   ],
+   "expect": "127\\.0\\.0\\.1:6742\\b",
+   "hint": "systemctl --user start openrgb-server"
+  },
+  {
+   "id": "running-version",
+   "title": "The running plugin reports version {{target_version}}",
+   "argv": [
+    "journalctl",
+    "-b",
+    "-t",
+    "run.sh",
+    "--no-pager",
+    "-g",
+    "thermal-rgb .* starting",
+    "-n",
+    "1"
+   ],
+   "expect": "thermal-rgb {{target_version}} starting",
+   "hint": "The process still runs older code. Restart it (Save and restart plugin, or restart coolercontrold)."
+  },
+  {
+   "id": "update-check",
+   "title": "The plugin has run its update check (info)",
+   "info": true,
+   "argv": [
+    "journalctl",
+    "-b",
+    "-t",
+    "run.sh",
+    "--no-pager",
+    "-g",
+    "Update check",
+    "-n",
+    "1"
+   ],
+   "hint": "The check runs a few seconds after the plugin starts; it fails when GitHub cannot be reached."
+  }
+ ],
+ "sections": [
+  {
+   "id": "setup",
+   "title": "0. Installation",
+   "intro": "",
+   "tests": [
+    {
+     "id": "S1",
+     "title": "Installed version",
+     "steps": [
+      "Run <code>sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --version</code>."
+     ],
+     "expected": "Prints <code>0.3.1</code>."
+    },
+    {
+     "id": "S2",
+     "title": "Update check ran",
+     "steps": [
+      "Run <code>journalctl -b -t run.sh | grep -E \"starting|Update check\" | tail -3</code>."
+     ],
+     "expected": "A line <code>thermal-rgb 0.3.1 starting</code> and a line <code>Update check: ahead (latest v0.2.1)</code>. If it says <code>Update check failed</code>, note the reason (no internet?)."
+    }
+   ]
+  },
+  {
+   "id": "version",
+   "title": "1. Version &amp; Update",
+   "intro": "New card on the Info tab, below Status.",
+   "tests": [
+    {
+     "id": "V1",
+     "title": "Installed version",
+     "steps": [
+      "Open <b>Plugins &rarr; thermal-rgb</b> and read the <b>Version &amp; Update</b> card and the header next to the plugin name."
+     ],
+     "expected": "Installed shows <b>v0.3.1</b>; the header also says v0.3.1."
+    },
+    {
+     "id": "V2",
+     "title": "Latest release",
+     "steps": [
+      "Read the <b>Latest release</b> row."
+     ],
+     "expected": "It says v0.2.1 is the latest published release and you run a newer build, with a <b>Release</b> link. It does not claim an update is available."
+    },
+    {
+     "id": "V3",
+     "title": "Release link",
+     "steps": [
+      "Click the <b>Release</b> link."
+     ],
+     "expected": "The v0.2.1 release page of <code>github.com/droltr/cc-plugin-thermal-rgb</code> opens in a new tab. If CoolerControl blocks it, note that."
+    },
+    {
+     "id": "V4",
+     "title": "Last checked",
+     "steps": [
+      "Read the <b>Last checked</b> row."
+     ],
+     "expected": "Today's date and a time in your local time zone, a few minutes ago or less."
+    },
+    {
+     "id": "V5",
+     "title": "Check again",
+     "steps": [
+      "Press <b>Check again (restarts the plugin)</b>.",
+      "Wait about 15 seconds."
+     ],
+     "expected": "A note says the plugin is restarting; afterwards <b>Last checked</b> shows a new time, the Status card is <b>Running</b> again, and the LEDs keep working."
+    }
+   ]
+  },
+  {
+   "id": "about",
+   "title": "2. About",
+   "intro": "Compare with CoolerDash's About section if you like.",
+   "tests": [
+    {
+     "id": "A1",
+     "title": "About rows",
+     "steps": [
+      "Read the <b>About</b> card."
+     ],
+     "expected": "Rows: Plugin <i>Thermal RGB (cc-plugin-thermal-rgb)</i>; What it does (blue to red by CPU temperature, never changes fan speeds); Author <b>droltr</b>; Repository <code>github.com/droltr/cc-plugin-thermal-rgb</code>; License GPL-3.0-or-later; Language <b>Python 3.x.y</b>; Credits with the third-party notices link."
+    },
+    {
+     "id": "A2",
+     "title": "Author and repository links",
+     "steps": [
+      "Click <b>droltr</b>, then <b>github.com/droltr/cc-plugin-thermal-rgb</b>."
+     ],
+     "expected": "The GitHub profile and the repository open in new tabs."
+    },
+    {
+     "id": "A3",
+     "title": "Details sections",
+     "steps": [
+      "Open <b>How it works</b>, <b>Tested hardware</b> and <b>Troubleshooting</b> under About."
+     ],
+     "expected": "All three expand and are readable; Tested hardware mentions the MSI B850 board, Ryzen 7 9800X3D and DDR5-6000 modules with ENE controllers."
+    },
+    {
+     "id": "A4",
+     "title": "Readability",
+     "steps": [
+      "Look at the whole Info tab in your usual theme."
+     ],
+     "expected": "The new cards match the rest of the page and CoolerControl's theme (spacing, colours, text size). Note anything that looks off or hard to find."
+    }
+   ]
+  },
+  {
+   "id": "community",
+   "title": "3. Community &amp; Feedback",
+   "intro": "",
+   "tests": [
+    {
+     "id": "C1",
+     "title": "Links",
+     "steps": [
+      "Click <b>GitHub Issues</b>, <b>Release notes and downloads</b>, <b>README</b> and <b>Troubleshooting guide</b>."
+     ],
+     "expected": "Each opens the matching page of the repository: the new-issue chooser, the releases list, the README and <code>docs/troubleshooting.md</code>. The troubleshooting guide exists on the main branch after the next release; if it shows a 404, note it."
+    },
+    {
+     "id": "C2",
+     "title": "Private security report (optional)",
+     "steps": [
+      "Click <b>Report a vulnerability privately</b>. Do not submit anything."
+     ],
+     "expected": "GitHub's private vulnerability report form opens (you may need to be signed in)."
+    }
+   ]
+  },
+  {
+   "id": "env",
+   "title": "4. System Environment",
+   "intro": "",
+   "tests": [
+    {
+     "id": "E1",
+     "title": "Platform, kernel and CoolerControl",
+     "steps": [
+      "Run <code>uname -r</code> and compare with the page.",
+      "Compare CoolerControl's version (its About or the Info card header) with the page."
+     ],
+     "expected": "Platform <b>Linux</b>; Kernel equals <code>uname -r</code>; CoolerControl equals <b>5.0.1</b> (or the version you run). A dash for the CoolerControl row means the page could not read it; note that."
+    },
+    {
+     "id": "E2",
+     "title": "Python and openrgb-python",
+     "steps": [
+      "Run <code>sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/venv/bin/python --version</code>.",
+      "Run <code>sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/venv/bin/pip show openrgb-python | grep ^Version</code>."
+     ],
+     "expected": "Python equals the Python row (and the Language row in About); openrgb-python equals <b>0.3.8</b>."
+    }
+   ]
+  },
+  {
+   "id": "regression",
+   "title": "5. Regression of the rest of the page",
+   "intro": "These worked in session 001; check they still do.",
+   "tests": [
+    {
+     "id": "R1",
+     "title": "Status and zones",
+     "steps": [
+      "Read the <b>Status</b> and <b>LED zones</b> cards."
+     ],
+     "expected": "Plugin <b>Running</b>, token <b>Stored</b>, five zones with 8 LEDs each, state <b>in use</b>."
+    },
+    {
+     "id": "R2",
+     "title": "Live temperature and LEDs",
+     "steps": [
+      "Watch the temperature and the colour swatch for 10 seconds; look at the LEDs."
+     ],
+     "expected": "The temperature updates, the swatch is blue at idle and the LEDs show the same blue."
+    },
+    {
+     "id": "R3",
+     "title": "API Settings still saves",
+     "steps": [
+      "Open <b>API Settings</b>, leave <code>***</code> in the field and press <b>Save and restart plugin</b>.",
+      "Wait 15 seconds and open Info."
+     ],
+     "expected": "Saved message, Info is <b>Running</b>, and the Version &amp; Update card is filled again after the restart."
+    }
+   ]
+  },
+  {
+   "id": "robust",
+   "title": "6. Robustness",
+   "intro": "Test N2 is <b>optional</b>: it replaces the stored token with an invalid one on purpose. Create a new valid token in CoolerControl first and keep it for N3.",
+   "tests": [
+    {
+     "id": "N1",
+     "title": "Update info survives a CoolerControl restart (optional)",
+     "steps": [
+      "Run <code>sudo systemctl restart coolercontrold</code>, wait 30 seconds and open Info."
+     ],
+     "expected": "Plugin <b>Running</b>; Version &amp; Update shows the latest release again with a new Last checked time."
+    },
+    {
+     "id": "N2",
+     "title": "Invalid token keeps the update info (optional)",
+     "steps": [
+      "On API Settings type <code>cc_invalid-test-token</code> and press <b>Save and restart plugin</b>.",
+      "Wait 15 seconds and open Info."
+     ],
+     "expected": "Plugin shows <b>Waiting for dependencies</b> with the HTTP 401 hint, and <b>Version &amp; Update</b> still shows the latest release (the update check does not need CoolerControl). Do N3 right away."
+    },
+    {
+     "id": "N3",
+     "title": "Valid token again (needed after N2)",
+     "steps": [
+      "Paste the new valid token and press <b>Save and restart plugin</b>.",
+      "Wait 15 seconds and open Info."
+     ],
+     "expected": "Plugin <b>Running</b> again, the error is gone, LEDs follow the temperature."
+    }
+   ]
+  }
+ ]
+}
