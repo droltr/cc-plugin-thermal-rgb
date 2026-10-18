@@ -1,11 +1,19 @@
 """Plugin configuration (config.json in the plugin folder, editable from CoolerControl)."""
 
 import json
-from dataclasses import dataclass, field
+import logging
+import os
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 from .colors import ColorStop, hex_to_rgb
+
+LOG = logging.getLogger(__name__)
+
+# The settings page sends a new token in config.json; the plugin moves it to credentials.json
+# and leaves this mask behind, so the page (which reads config.json verbatim) never sees it.
+TOKEN_MASK = "***"
 
 DEFAULT_STOPS = (
     {"temp_c": 50, "color": "#2060ff"},  # cold: blue
@@ -51,7 +59,7 @@ class Config:
     openrgb_port: int = 6742
     poll_interval_s: float = 1.0
     smoothing_tau_s: float = 3.0
-    write_leds: bool = False
+    write_leds: bool = True
     stops: tuple[ColorStop, ...] = field(default_factory=tuple)
     zones: tuple[ZoneRef, ...] = field(default_factory=tuple)
 
@@ -94,16 +102,53 @@ def parse_config(raw: dict[str, Any]) -> Config:
         openrgb_port=port,
         poll_interval_s=poll,
         smoothing_tau_s=float(raw.get("smoothing_tau_s", 3.0)),
-        write_leds=bool(raw.get("write_leds", False)),
+        write_leds=bool(raw.get("write_leds", True)),
         stops=stops,
         zones=zones,
     )
 
 
+def credentials_path(config_path: Path) -> Path:
+    return config_path.with_name("credentials.json")
+
+
+def _write_json(path: Path, data: dict[str, Any]) -> None:
+    """Replace a JSON file atomically, keeping owner-only permissions."""
+    tmp = path.with_name(path.name + ".tmp")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2)
+    tmp.replace(path)
+
+
+def _stored_token(path: Path) -> str:
+    try:
+        return str(json.loads(path.read_text(encoding="utf-8")).get("coolercontrol_token", ""))
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return ""
+
+
+def resolve_token(config_path: Path, raw: dict[str, Any]) -> str:
+    """Return the CoolerControl token, moving a newly entered one into credentials.json."""
+    entered = str(raw.get("coolercontrol_token", "")).strip()
+    creds = credentials_path(config_path)
+    if not entered or set(entered) == {"*"}:
+        return _stored_token(creds)
+    try:
+        _write_json(creds, {"coolercontrol_token": entered})
+        _write_json(config_path, {**raw, "coolercontrol_token": TOKEN_MASK})
+        LOG.info("Stored the CoolerControl token in %s", creds.name)
+    except OSError as err:
+        LOG.warning("Could not move the token to %s (%s); using it from config", creds.name, err)
+    return entered
+
+
 def load_config(path: Path) -> Config:
     if not path.exists():
-        return parse_config({})
+        return replace(parse_config({}), coolercontrol_token=_stored_token(credentials_path(path)))
     try:
-        return parse_config(json.loads(path.read_text(encoding="utf-8")))
+        raw = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as err:
         raise ConfigError(f"{path}: {err}") from err
+    cfg = parse_config(raw)
+    return replace(cfg, coolercontrol_token=resolve_token(path, raw))

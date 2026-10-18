@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermal RGB Settings</title>
+    <script type="text/javascript" src="/plugins/lib/cc-plugin-lib.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* CoolerControl publishes its theme as `--colors-*` triplets; literals are the fallback. */
+            --bg-one: var(--colors-bg-one, 27 30 35);
+            --bg-two: var(--colors-bg-two, 44 49 60);
+            --text-color: var(--colors-text-color, 234 234 234);
+            --text-color-secondary: var(--colors-text-color-secondary, 140 145 165);
+            --border-one: var(--colors-border-one, 45 66 99);
+            --accent: var(--colors-accent, 86 138 242);
+            --success: var(--colors-success, 34 197 94);
+            --error: var(--colors-error, 233 69 96);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: rgb(var(--bg-one));
+            color: rgb(var(--text-color));
+            line-height: 1.6;
+            padding: 24px;
+        }
+
+        .card {
+            max-width: 560px;
+            background: rgb(var(--bg-two));
+            border: 1px solid rgb(var(--border-one));
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        p, li { font-size: 13px; color: rgb(var(--text-color-secondary)); }
+        ol { margin: 8px 0 16px 20px; }
+        label { display: block; font-weight: 600; font-size: 13px; margin-top: 8px; }
+
+        input {
+            width: 100%;
+            margin-top: 4px;
+            padding: 8px 10px;
+            color: inherit;
+            background: rgb(var(--bg-one));
+            border: 1px solid rgb(var(--border-one));
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        input:focus { outline: 2px solid rgb(var(--accent)); }
+
+        button {
+            margin-top: 14px;
+            padding: 8px 16px;
+            color: #fff;
+            background: rgb(var(--accent));
+            border: 0;
+            border-radius: 6px;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        button:disabled { opacity: 0.5; cursor: default; }
+        #status { margin-top: 12px; font-size: 13px; min-height: 1.4em; }
+        #status.ok { color: rgb(var(--success)); }
+        #status.err { color: rgb(var(--error)); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Thermal RGB</h1>
+        <p>The plugin reads temperatures from CoolerControl and needs an access token for that.</p>
+        <ol>
+            <li>In CoolerControl open <strong>Access Protection &rarr; Access Tokens</strong>.</li>
+            <li>Generate a new token and copy it (<code>cc_&hellip;</code>).</li>
+            <li>Paste it below and save.</li>
+        </ol>
+        <label for="token">CoolerControl access token</label>
+        <input type="password" id="token" autocomplete="off" spellcheck="false"
+               placeholder="cc_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        <p id="hint"></p>
+        <button id="save">Save and restart plugin</button>
+        <div id="status" role="status"></div>
+    </div>
+
+    <script>
+        // The plugin moves a newly entered token into credentials.json and leaves this mask in
+        // config.json, so the real token is never shown here again.
+        var MASK = '***';
+        var config = {};
+        var tokenInput = document.getElementById('token');
+        var saveButton = document.getElementById('save');
+        var statusLine = document.getElementById('status');
+
+        function setStatus(text, kind) {
+            statusLine.textContent = text;
+            statusLine.className = kind || '';
+        }
+
+        function normalize(raw) {
+            if (typeof raw === 'string') {
+                try { raw = JSON.parse(raw); } catch (e) { return {}; }
+            }
+            if (!raw || typeof raw !== 'object') return {};
+            return raw.config || raw.body || raw;
+        }
+
+        function showTokenState() {
+            var stored = typeof config.coolercontrol_token === 'string' && config.coolercontrol_token !== '';
+            tokenInput.value = stored ? MASK : '';
+            document.getElementById('hint').textContent = stored
+                ? 'A token is stored. Leave the field as is to keep it, or paste a new one to replace it.'
+                : 'No token stored yet.';
+        }
+
+        async function save() {
+            var value = tokenInput.value.trim();
+            if (!value) {
+                setStatus('Paste a token first.', 'err');
+                return;
+            }
+            saveButton.disabled = true;
+            setStatus('Saving...');
+            try {
+                config.coolercontrol_token = value;
+                await savePluginConfig(config);
+                await restartPlugin();
+                config.coolercontrol_token = MASK;
+                showTokenState();
+                setStatus('Saved. The plugin restarted with the new token.', 'ok');
+            } catch (err) {
+                setStatus('Save failed: ' + (err && err.message ? err.message : err), 'err');
+            } finally {
+                saveButton.disabled = false;
+            }
+        }
+
+        saveButton.addEventListener('click', save);
+
+        runPluginScript(async function () {
+            try {
+                config = normalize(await getPluginConfig());
+            } catch (err) {
+                setStatus('Could not load the plugin config: ' + (err && err.message ? err.message : err), 'err');
+            }
+            showTokenState();
+        });
+    </script>
+</body>
+</html>
