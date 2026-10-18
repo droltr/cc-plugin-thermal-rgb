@@ -41,9 +41,19 @@ detector and the MS-7E62 761-byte configuration.
 
 ## Cleanup still to do (phase 0)
 
-- [ ] Remove the stale rc2 autostart: `~/.config/autostart/OpenRGB.desktop` (`Exec=/tmp/.mount_…`).
-- [ ] Two `openrgb` Flatpak processes were running at 05:1x. Keep a single instance.
-- [ ] Run OpenRGB headless as the SDK server for the plugins
-  (`flatpak run org.openrgb.OpenRGB --server --server-host 127.0.0.1 --noautoconnect`),
-  as a systemd user service, and disable the GUI autostart. The GUI overrides Direct mode.
+- [x] Remove the stale rc2 autostart: `~/.config/autostart/OpenRGB.desktop` (`Exec=/tmp/.mount_…`).
+- [x] Keep a single instance: the GUI windows were closed before the server was installed.
+- [x] Run OpenRGB headless as the SDK server for the plugins. Done 2026-10-09 05:54 with
+  `setup/install-openrgb-server.sh` (no root):
+  - `~/.config/systemd/user/openrgb-server.service`, enabled and started at login:
+    `flatpak run --command=openrgb org.openrgb.OpenRGB --server --server-host 127.0.0.1 --server-port 6742 --noautoconnect --loglevel warning`
+  - OpenRGB's own "start at login" turned off (`AutoStart.enabled=false` in `OpenRGB.json`).
+  - Both GUI autostart entries moved to `~/.local/state/cc-plugin-thermal-rgb/backup/`, together
+    with the original `OpenRGB.json`.
+  - Undo: `setup/uninstall-openrgb-server.sh`.
+  - Verified: `127.0.0.1:6742` listening; SDK protocol 4 works with openrgb-python 0.3.8.
+    The protocol-3 workaround from MysticLight is not needed with OpenRGB 1.0.
+- Opening the OpenRGB GUI now attaches to this server as a client (without `--noautoconnect`), so
+  the GUI can still be used to look at devices. Do not run effects from the GUI while the plugin
+  writes LEDs.
 - [ ] Decide whether the Effects plugin may stay enabled. It writes the same LEDs as this plugin.

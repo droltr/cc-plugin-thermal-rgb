@@ -11,6 +11,10 @@ dist/
 config.local.json
 credentials.json
 *.token
+.private/
+.agent-sessions/
 
 # Soft-deleted files
 .deleted/
+.coverage
+htmlcov/
