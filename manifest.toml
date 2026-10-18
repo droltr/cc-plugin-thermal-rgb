@@ -1,7 +1,7 @@
 # CoolerControl integration plugin: temperature-driven RGB via the OpenRGB SDK server.
 id = "thermal-rgb"
 type = "integration"
-version = "0.2.1"
+version = "0.2.2"
 url = "https://github.com/droltr/cc-plugin-thermal-rgb"
 description = "Colours fans, RAM and motherboard LEDs by CPU temperature through OpenRGB."
 executable = "/var/lib/coolercontrol/plugins/thermal-rgb/run.sh"

@@ -7,6 +7,17 @@ temperature, so the colour tells you how hot the system is and, with the default
 about to reach full speed. There is a single temperature source (CoolerControl) and a single LED driver
 (OpenRGB).
 
+## Terms
+
+| Term | Meaning |
+|---|---|
+| **CoolerControl** | Linux fan and cooling control application; starts this plugin and provides the temperatures through its REST API |
+| **OpenRGB SDK server** | OpenRGB running without a window, accepting colour commands on a local network port (`6742`) |
+| **Zone** | One independently coloured group of LEDs, for example a motherboard header (`JARGB 1`) or a whole RAM module |
+| **Colour stop** | A temperature paired with a colour; colours between two stops are blended |
+| **Direct mode** | The OpenRGB mode in which the plugin sets static colours itself instead of the device running a built-in effect |
+| **Access token** | A key that lets the plugin read CoolerControl's API; created in CoolerControl and stored in `credentials.json` |
+
 ## Data flow
 
 ```

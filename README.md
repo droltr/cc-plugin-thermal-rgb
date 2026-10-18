@@ -10,20 +10,30 @@ fans, RAM and motherboard LEDs by CPU temperature, so the lighting shows how hot
 ## Contents
 
 [Purpose](#purpose) · [Hardware](#hardware) · [How it works](#how-it-works) · [Installation](#installation) ·
-[Configuration](#configuration) · [Usage](#usage) · [Testing](#testing) · [Development](#development) ·
-[Documentation](#documentation) · [Security](#security) · [License](#license)
+[Configuration](#configuration) · [Usage](#usage) · [Testing](#testing) · [Troubleshooting](#troubleshooting) ·
+[Development](#development) · [Documentation](#documentation) · [Security](#security) · [Acknowledgements](#acknowledgements) · [License](#license)
 
 ## Purpose
 
 CoolerControl already drives the fans from temperature sensors. This plugin reuses the same sensor for
 the LEDs: blue when the CPU is cool, then yellow, orange and finally red as it heats up. There is one
-temperature source (CoolerControl) and one LED driver ([OpenRGB](https://openrgb.org)), so the fan
-behaviour and the lighting always agree.
+temperature source (CoolerControl) and one LED driver ([OpenRGB](https://openrgb.org)), so the fans
+and the lighting react to the same reading.
 
 This is **not** an OpenRGB plugin (those are Qt/C++ modules inside the OpenRGB GUI). It is a separate
 Python process that CoolerControl starts, stops and logs, and that talks to OpenRGB over its SDK server.
 
-Version 0.2.1 implements the **temperature bands** theme. A heat-wave theme, rotating user colours and a
+**What it does**
+
+- Reads the CPU temperature from CoolerControl and shows it as a colour on the LEDs you configure.
+- Runs by itself in the background, started and stopped by CoolerControl.
+
+**What it does not do**
+
+- It never changes fan speeds or any other CoolerControl setting; it only reads one temperature.
+- It does not light devices outside its `zones` list (keyboard, mouse and graphics card are left alone).
+
+Version 0.2.x implements the **temperature bands** theme. A heat-wave theme, rotating user colours and a
 full settings page are planned but not implemented.
 
 ## Hardware
@@ -38,8 +48,8 @@ Written for, and tested only on, one machine:
 | GPU | NVIDIA GeForce RTX 5080 (not used by this plugin) |
 | Software | Bazzite (Fedora Atomic), CoolerControl 5.0.1, OpenRGB 1.0 (Flatpak) |
 
-The plugin works wherever OpenRGB sees your LEDs, but the default zone map matches only this machine;
-other hardware needs its own `zones` list. Full details, the zone table and a guide for other hardware:
+In principle the plugin works with any LEDs that OpenRGB can control, but only this machine has been
+tested, and the default zone map matches only it; other hardware needs its own `zones` list. Full details, the zone table and a guide for other hardware:
 [docs/hardware.md](docs/hardware.md).
 
 ## How it works
@@ -142,6 +152,13 @@ colours and the temperature response were also checked by eye on the reference m
 each colour stop, a CPU heat test from blue to red and back, and the token flow. What was and was not
 verified is listed in [docs/testing.md](docs/testing.md).
 
+## Troubleshooting
+
+Most problems show up as a line in the log. The usual ones are an invalid or expired CoolerControl token
+(`HTTP Error 401`), an OpenRGB server that is not running, and a zone map that does not match your hardware
+(`Connected: 0 zones resolved`). [docs/troubleshooting.md](docs/troubleshooting.md) explains every message
+and the steps to fix it.
+
 ## Development
 
 ```bash
@@ -160,13 +177,14 @@ and work happens on `feature/*` and `fix/*` branches merged into `develop`; rele
 | `ui/index.html` | Token settings page shown in CoolerControl |
 | `setup/` | Optional helper that runs OpenRGB as a headless user service |
 | `tests/` | Unit tests |
-| `docs/` | Hardware, how it works, testing |
+| `docs/` | Hardware, how it works, testing, troubleshooting |
 
 ## Documentation
 
 - [docs/hardware.md](docs/hardware.md): tested hardware, zone map, using other hardware
 - [docs/how-it-works.md](docs/how-it-works.md): data flow, colour model, error handling, token storage
 - [docs/testing.md](docs/testing.md): automated tests, hardware verification, what is not tested
+- [docs/troubleshooting.md](docs/troubleshooting.md): log messages, fixes, what to include in an issue
 - [CHANGELOG.md](CHANGELOG.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md)
 
 ## Security
@@ -174,6 +192,14 @@ and work happens on `feature/*` and `fix/*` branches merged into `develop`; rele
 The access token grants CoolerControl API access. It is kept in `credentials.json` with mode 0600 and is
 never committed, logged or returned to the settings page. Report vulnerabilities privately as described in
 [SECURITY.md](SECURITY.md).
+
+## Acknowledgements
+
+Built on [CoolerControl](https://gitlab.com/coolercontrol/coolercontrol), [OpenRGB](https://openrgb.org) and
+[openrgb-python](https://github.com/jath03/openrgb-python). The perceptual colour blending uses the OKLab colour
+space by [Björn Ottosson](https://bottosson.github.io/posts/oklab/), and the settings page follows the approach of
+[CoolerDash](https://github.com/damachine/coolerdash). Full list with licenses:
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License
 
