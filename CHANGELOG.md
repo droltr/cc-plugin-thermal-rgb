@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-18
+
+Documentation and repository release; no behaviour changes.
+
 ### Added
 - `LICENSE` (GPL-3.0-or-later), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
   `SECURITY.md`, issue forms and a pull request template.

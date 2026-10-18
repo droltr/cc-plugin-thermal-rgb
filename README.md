@@ -23,7 +23,7 @@ behaviour and the lighting always agree.
 This is **not** an OpenRGB plugin (those are Qt/C++ modules inside the OpenRGB GUI). It is a separate
 Python process that CoolerControl starts, stops and logs, and that talks to OpenRGB over its SDK server.
 
-Version 0.2.0 implements the **temperature bands** theme. A heat-wave theme, rotating user colours and a
+Version 0.2.1 implements the **temperature bands** theme. A heat-wave theme, rotating user colours and a
 full settings page are planned but not implemented.
 
 ## Hardware
