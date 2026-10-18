@@ -1,0 +1,375 @@
+{
+ "guide": "cc-plugin-thermal-rgb:001-2026-10-18-info-page-v0.3.0",
+ "title": "Thermal RGB: Test Guide",
+ "target": "thermal-rgb v0.3.0 (branch feature/info-page, installed 2026-10-18)",
+ "setup": "<p><b>Setup:</b> the plugin is installed in CoolerControl 5.0.1 (<code>/var/lib/coolercontrol/plugins/thermal-rgb/</code>) with a valid access token. At idle the CPU is below 50 &deg;C, so the LEDs should be <b>blue</b>. Commands need <code>sudo</code>. Tests marked <b>optional</b> change something temporarily; read their note first.</p>",
+ "sections": [
+  {
+   "id": "setup",
+   "title": "0. Installation",
+   "intro": "Check what is installed before testing the page.",
+   "tests": [
+    {
+     "id": "S1",
+     "title": "Installed version",
+     "steps": [
+      "Run <code>sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --version</code>."
+     ],
+     "expected": "Prints <code>0.3.0</code>."
+    },
+    {
+     "id": "S2",
+     "title": "Plugin is running",
+     "steps": [
+      "Run <code>journalctl -b -t run.sh | grep thermal_rgb | tail -5</code>."
+     ],
+     "expected": "A line <code>Connected: 5 zones resolved, write_leds=True</code> and no recent <code>WARNING</code> lines."
+    },
+    {
+     "id": "S3",
+     "title": "Plugin page opens",
+     "steps": [
+      "Open CoolerControl and go to <b>Plugins &rarr; thermal-rgb</b>."
+     ],
+     "expected": "The page loads with the title &ldquo;Thermal RGB&rdquo; and two tabs, <b>Info</b> and <b>API Settings</b>. It is not blank."
+    }
+   ]
+  },
+  {
+   "id": "info",
+   "title": "1. Info tab",
+   "intro": "Everything on this tab is read-only.",
+   "tests": [
+    {
+     "id": "I1",
+     "title": "Opens on Info",
+     "steps": [
+      "Open the plugin page (a token is stored)."
+     ],
+     "expected": "The <b>Info</b> tab is selected first, not API Settings."
+    },
+    {
+     "id": "I2",
+     "title": "Status card",
+     "steps": [
+      "Read the <b>Status</b> card."
+     ],
+     "expected": "Plugin <b>Running</b>; Token <b>Stored</b>; LED writes <b>On</b>; OpenRGB server <code>127.0.0.1:6742</code>; a temperature sensor line; a Last report time in your local time (not UTC). The version <b>v0.3.0</b> is shown next to the title."
+    },
+    {
+     "id": "I3",
+     "title": "Live temperature",
+     "steps": [
+      "Look at the large temperature under <b>Temperature and colours</b>.",
+      "Compare it with the CPU temperature in CoolerControl's dashboard.",
+      "Wait 5 seconds."
+     ],
+     "expected": "Both agree within about 2 &deg;C and the value on the page changes without reloading. If it shows a dash, note it (the rest of the plugin is not affected)."
+    },
+    {
+     "id": "I4",
+     "title": "Gradient bar, marker and swatch",
+     "steps": [
+      "Look at the colour bar, the marker on it and the small swatch next to the temperature."
+     ],
+     "expected": "The bar blends blue &rarr; yellow &rarr; orange &rarr; red. The marker sits at the current temperature (left part when idle). The swatch is blue at idle and matches the colour of the LEDs."
+    },
+    {
+     "id": "I5",
+     "title": "Colour stops table",
+     "steps": [
+      "Read the table under the bar."
+     ],
+     "expected": "Four rows: 50 &deg;C <code>#2060ff</code>, 60 &deg;C <code>#ffd000</code>, 70 &deg;C <code>#ff7a00</code>, 80 &deg;C <code>#ff0000</code>, each with a coloured dot."
+    },
+    {
+     "id": "I6",
+     "title": "LED zones table",
+     "steps": [
+      "Read the <b>LED zones</b> card."
+     ],
+     "expected": "Five zones: rear_1, rear_2, ram_1, ram_2, front, each with <b>8</b> LEDs and state <b>in use</b>. The note says each zone shows the same colour."
+    },
+    {
+     "id": "I7",
+     "title": "About, hardware, troubleshooting, links",
+     "steps": [
+      "Open <b>How it works</b>, <b>Tested hardware</b> and <b>Troubleshooting</b> in the About card.",
+      "Click <b>Project on GitHub</b>, <b>README</b> and <b>third-party notices</b>."
+     ],
+     "expected": "The three sections expand and read correctly. The links open the GitHub pages in a new tab. If a link is blocked inside CoolerControl, note it."
+    },
+    {
+     "id": "I8",
+     "title": "Themes and window size",
+     "steps": [
+      "Switch CoolerControl between a dark and a light theme.",
+      "Open the page as a full page and, if possible, as a modal, then make the window narrow."
+     ],
+     "expected": "Text is readable in both themes (no dark text on a dark background), the page follows the theme colours, and nothing overflows horizontally when narrow."
+    }
+   ]
+  },
+  {
+   "id": "api",
+   "title": "2. API Settings tab",
+   "intro": "Tests A3 and A4 are <b>optional</b>: A3 replaces the stored token with an invalid one on purpose. Before A3, create a new valid token in CoolerControl (Access Protection &rarr; Access Tokens) and copy it for A4.",
+   "tests": [
+    {
+     "id": "A1",
+     "title": "Token field",
+     "steps": [
+      "Click the <b>API Settings</b> tab."
+     ],
+     "expected": "The field shows <code>***</code> and the hint says a token is stored. The real token is not visible anywhere."
+    },
+    {
+     "id": "A2",
+     "title": "Save without changing",
+     "steps": [
+      "Leave <code>***</code> in the field and press <b>Save and restart plugin</b>.",
+      "Wait 15 seconds, then open the Info tab."
+     ],
+     "expected": "A green message says the plugin restarted. Info shows <b>Running</b> again and the token is still <b>Stored</b>; temperatures keep working."
+    },
+    {
+     "id": "A3",
+     "title": "Invalid token (optional)",
+     "steps": [
+      "Type <code>cc_invalid-test-token</code> in the field and press <b>Save and restart plugin</b>.",
+      "Wait 15 seconds and open the Info tab."
+     ],
+     "expected": "Info shows <b>Waiting for dependencies</b>, a Last error with <code>HTTP Error 401</code> and a hint to enter a new token on API Settings. The LEDs keep their last colour. Do A4 right away."
+    },
+    {
+     "id": "A4",
+     "title": "Valid token (needed after A3)",
+     "steps": [
+      "Paste the new valid token and press <b>Save and restart plugin</b>.",
+      "Wait 15 seconds and open the Info tab."
+     ],
+     "expected": "Info is <b>Running</b> again, the error is gone, LEDs follow the temperature, and the field shows <code>***</code> again."
+    },
+    {
+     "id": "A5",
+     "title": "Token is not exposed",
+     "steps": [
+      "Run <code>sudo ls -l /var/lib/coolercontrol/plugins/thermal-rgb/credentials.json</code>.",
+      "Run <code>sudo grep -c cc_ /var/lib/coolercontrol/plugins/thermal-rgb/config.json</code>."
+     ],
+     "expected": "<code>credentials.json</code> has mode <code>-rw-------</code> and belongs to <code>cc-plugin-user</code>. The grep prints <code>0</code> (no token in <code>config.json</code>)."
+    }
+   ]
+  },
+  {
+   "id": "leds",
+   "title": "3. LEDs and colours",
+   "intro": "Look at the case fans, the CPU block, the RAM sticks and the rear fans.",
+   "tests": [
+    {
+     "id": "L1",
+     "title": "Idle colour",
+     "steps": [
+      "Look at all LED zones while the PC is idle."
+     ],
+     "expected": "All five zones show the same <b>blue</b> (the page's swatch colour)."
+    },
+    {
+     "id": "L2",
+     "title": "Colour sweep",
+     "steps": [
+      "Run <code>sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --sweep 45 85</code> and watch the LEDs for about a minute."
+     ],
+     "expected": "The colour moves blue &rarr; yellow &rarr; orange &rarr; red in that order, smoothly, on all five zones together. Afterwards it returns to the current temperature colour (blue). Note any zone that lags or stays off."
+    },
+    {
+     "id": "L3",
+     "title": "Single colours",
+     "steps": [
+      "Run <code>sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --show '#ff7a00'</code> and look at the LEDs.",
+      "Run <code>sudo -u cc-plugin-user /var/lib/coolercontrol/plugins/thermal-rgb/run.sh --show '#ff0000'</code>.",
+      "Press <b>Save and restart plugin</b> on API Settings to restore the temperature colour."
+     ],
+     "expected": "Orange, then red, on all five zones. The running plugin writes only when its own colour changes, so the manual colour stays until you restart the plugin; after the restart the LEDs are blue again."
+    },
+    {
+     "id": "L4",
+     "title": "Heat test (optional)",
+     "steps": [
+      "Start CoolerControl's CPU stress test, or run <code>stress-ng --cpu 16 --timeout 120s</code>.",
+      "Watch the Info tab and the LEDs until the temperature falls again."
+     ],
+     "expected": "LED colour follows the temperature shown on the Info tab (blue &rarr; yellow &rarr; orange &rarr; red as it rises) and returns to blue after the load ends."
+    }
+   ]
+  },
+  {
+   "id": "robust",
+   "title": "4. Robustness",
+   "intro": "Tests R2, R3 and R4 are <b>optional</b>; they interrupt something for a short time.",
+   "tests": [
+    {
+     "id": "R1",
+     "title": "Restart from the page",
+     "steps": [
+      "Press <b>Save and restart plugin</b> on API Settings (with <code>***</code> in the field).",
+      "Watch the LEDs during the restart."
+     ],
+     "expected": "LEDs keep their colour during the restart and Info is back to <b>Running</b> within about 15 seconds; the Last report time is new."
+    },
+    {
+     "id": "R2",
+     "title": "OpenRGB server stops (optional)",
+     "steps": [
+      "Run <code>systemctl --user stop openrgb-server</code> and wait 30 seconds; read the Info tab and the log.",
+      "Run <code>systemctl --user start openrgb-server</code> and wait 30 seconds."
+     ],
+     "expected": "While stopped: Info shows <b>Waiting for dependencies</b> (or stays Running if the plugin did not notice; note which) and the log shows <code>Not ready</code> retries every 10 s. After the start: <b>Running</b> again and the LEDs follow the temperature. Note if you have to restart the plugin."
+    },
+    {
+     "id": "R3",
+     "title": "CoolerControl restarts (optional)",
+     "steps": [
+      "Run <code>sudo systemctl restart coolercontrold</code> and wait 30 seconds."
+     ],
+     "expected": "The plugin comes back by itself; Info is <b>Running</b> with a new Last report time; fans keep working."
+    },
+    {
+     "id": "R4",
+     "title": "After a reboot (optional)",
+     "steps": [
+      "Reboot the PC, wait for the desktop and open the plugin page."
+     ],
+     "expected": "Info is <b>Running</b> with a Last report time from after the boot; the LEDs show the temperature colour without any action from you."
+    }
+   ]
+  },
+  {
+   "id": "install",
+   "title": "5. Reinstall",
+   "intro": "",
+   "tests": [
+    {
+     "id": "U1",
+     "title": "Reinstall keeps the token (optional)",
+     "steps": [
+      "In the project folder run <code>sudo bash install.sh</code>, then <code>sudo systemctl restart coolercontrold</code>.",
+      "Open the plugin page after 30 seconds."
+     ],
+     "expected": "Installed without errors; the token is still <b>Stored</b>, Info is <b>Running</b>, and <code>--version</code> prints the same version. You do not need to enter the token again."
+    }
+   ]
+  }
+ ],
+ "change": "Info and API Settings tabs, plugin _status block (PR #22)",
+ "project": "cc-plugin-thermal-rgb",
+ "target_version": "0.3.0",
+ "preflight": [
+  {
+   "id": "src-version",
+   "title": "Source tree is version {{target_version}}",
+   "argv": [
+    "python3",
+    "-I",
+    "-c",
+    "import re;print(re.search(r'__version__ = \"([^\"]+)\"',open('thermal_rgb/__init__.py').read()).group(1))"
+   ],
+   "expect": "^{{target_version}}$",
+   "hint": "The tests describe another version than the code in this folder; check the branch or create a new test session."
+  },
+  {
+   "id": "src-manifest",
+   "title": "manifest.toml says {{target_version}}",
+   "argv": [
+    "grep",
+    "^version",
+    "manifest.toml"
+   ],
+   "expect": "version = \"{{target_version}}\"",
+   "hint": "Bump the version in manifest.toml and __init__.py together."
+  },
+  {
+   "id": "git",
+   "title": "Branch and uncommitted changes (info)",
+   "info": true,
+   "argv": [
+    "git",
+    "status",
+    "--short",
+    "--branch"
+   ]
+  },
+  {
+   "id": "installed-version",
+   "title": "Installed plugin is version {{target_version}}",
+   "argv": [
+    "grep",
+    "^version",
+    "/var/lib/coolercontrol/plugins/thermal-rgb/manifest.toml"
+   ],
+   "expect": "version = \"{{target_version}}\"",
+   "hint": "Install it: sudo bash install.sh && sudo systemctl restart coolercontrold"
+  },
+  {
+   "id": "installed-code",
+   "title": "Installed code is identical to the source tree",
+   "argv": [
+    "diff",
+    "-rq",
+    "--exclude=__pycache__",
+    "thermal_rgb",
+    "/var/lib/coolercontrol/plugins/thermal-rgb/lib/thermal_rgb"
+   ],
+   "hint": "The installed copy is stale or edited. Re-run install.sh and restart coolercontrold."
+  },
+  {
+   "id": "installed-ui",
+   "title": "Installed plugin page is identical to the source tree",
+   "argv": [
+    "diff",
+    "-q",
+    "ui/index.html",
+    "/var/lib/coolercontrol/plugins/thermal-rgb/ui/index.html"
+   ],
+   "hint": "Re-run install.sh; CoolerControl serves the installed page."
+  },
+  {
+   "id": "service",
+   "title": "Plugin service is active",
+   "argv": [
+    "systemctl",
+    "is-active",
+    "cc-plugin-thermal-rgb"
+   ],
+   "expect": "^active$",
+   "hint": "Restart CoolerControl: sudo systemctl restart coolercontrold"
+  },
+  {
+   "id": "running-version",
+   "title": "The running plugin reports version {{target_version}}",
+   "argv": [
+    "journalctl",
+    "-b",
+    "-t",
+    "run.sh",
+    "--no-pager",
+    "-g",
+    "thermal-rgb .* starting",
+    "-n",
+    "1"
+   ],
+   "expect": "thermal-rgb {{target_version}} starting",
+   "hint": "The process still runs older code. Restart it (Save and restart plugin, or restart coolercontrold)."
+  },
+  {
+   "id": "openrgb",
+   "title": "OpenRGB SDK server is listening on 6742",
+   "argv": [
+    "ss",
+    "-ltn"
+   ],
+   "expect": "127\\.0\\.0\\.1:6742\\b",
+   "hint": "systemctl --user start openrgb-server"
+  }
+ ]
+}

@@ -24,6 +24,27 @@ push to `main` and `develop` and on every pull request.
 
 Tests use fake OpenRGB and CoolerControl clients, so no server, LED or token is needed.
 
+## User test guide
+
+Changes that a person can observe are also verified by the user through an interactive guide that belongs to this
+project: `tools/test-guide/` (engine) and `tests/user/<NNN-date-slug>/tests.json` (one numbered folder per change; a
+fix after a failed test is a new folder). Start it with `tools/test-guide/launch.sh [session]`; it opens
+`http://127.0.0.1:8766/`.
+
+- **Pre-flight checks** run when the page opens and again when a report is saved: the tests belong to this project, the
+  source tree, the installed copy (version, code and page, compared with `diff`) and the **running** process
+  (`thermal-rgb X.Y.Z starting` in the journal) are the version under test, the service is active and OpenRGB is
+  listening. A failed check turns the page red; a report can then only be saved after an explicit acknowledgement and
+  the failure is recorded in it.
+- **Project and path** are shown on the page. The server refuses reports for another project or path, for an unknown
+  session, or when `tests.json` changed after the page was loaded (its SHA-256 is part of the report).
+- **Reports** are written to `.private/test-reports/<session>/cc-plugin-thermal-rgb__<session>__runNN.json` and `.md`,
+  numbered, never overwritten and never committed.
+- The server is covered by `tests/test_test_guide.py` (pre-flight rules, refused programs, numbering, project and
+  hash checks, acknowledgement of failed pre-flight).
+
+The procedure for this guide is shared by all projects (workspace file `.MD/USER_TEST_STANDARD.md`).
+
 ## Plugin page (Info and API Settings tabs)
 
 Checked outside CoolerControl by running `ui/index.html` in jsdom with a mock of CoolerControl's plugin library:
@@ -31,8 +52,9 @@ Info tab with a running, a waiting (HTTP 401 with hint) and a never-reported plu
 colour swatch; zone table with found and missing zones; API Settings tab opens first when no token is stored;
 saving sends the token to `savePluginConfig`, restarts the plugin and then shows `***`. The browser colour
 blend matched `colors.py` exactly for 140 temperatures from 30 to 99.5 °C. These checks are not part of CI.
-The page still needs a visual check inside the real CoolerControl iframe (full-page and modal view, dark and light
-theme); until that is logged in the table below, treat the layout as unverified.
+The visual check inside the real CoolerControl iframe (full-page and modal view, dark and light theme) is session
+`001-2026-10-18-info-page-v0.3.0` of the user test guide above; until its report is logged here, treat the layout
+as unverified.
 
 ## Hardware verification (reference system)
 

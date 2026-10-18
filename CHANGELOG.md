@@ -14,7 +14,11 @@ All notable changes to this project are documented here. The format follows
   tested hardware, troubleshooting table, links, license and credits. **API Settings:** the token entry from 0.2.0.
 - `thermal_rgb/status.py`: the plugin publishes a read-only `_status` block (state, version, token stored, zones and
   LED counts, last error) into `config.json` on start, while waiting and on shutdown; it never contains the token.
-- 7 tests for the status block (79 in total).
+- 7 tests for the status block.
+- Interactive user test guide (`tools/test-guide/`, `tests/user/`): numbered sessions per change, pre-flight checks that
+  the tests, the installed copy and the running plugin all match the version under test, project name and path shown on
+  the page, reports numbered per project and session and never overwritten (92 tests in total).
+- The plugin logs `thermal-rgb X.Y.Z starting` at start so the running version can be verified.
 
 ## [0.2.2] - 2026-10-18
 

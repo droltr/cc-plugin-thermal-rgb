@@ -155,6 +155,16 @@ def test_main_list(tmp_path: Path) -> None:
     list_mode.assert_called_once()
 
 
+def test_main_logs_version_on_start(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    with (
+        caplog.at_level("INFO"),
+        patch("sys.argv", ["thermal_rgb", "--config", str(tmp_path / "none.json")]),
+        patch.object(app, "run", lambda cfg, stop, status_path=None: 0),
+    ):
+        assert app.main() == 0
+    assert f"thermal-rgb {app.__version__} starting" in caplog.text
+
+
 def test_main_retries_until_ready(tmp_path: Path) -> None:
     attempts = {"n": 0}
 

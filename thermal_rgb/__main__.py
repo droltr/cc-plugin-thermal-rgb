@@ -199,6 +199,8 @@ def main() -> int:
     except ConfigError as err:
         LOG.error("Invalid configuration: %s", err)
         return 2
+    if not (args.list or args.show or args.sweep is not None):
+        LOG.info("thermal-rgb %s starting", __version__)
     if args.list:
         return list_mode(cfg)
     if args.show:

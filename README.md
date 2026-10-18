@@ -158,7 +158,7 @@ or the two will compete.
 
 ## Testing
 
-72 automated tests (98 % coverage, no hardware needed) run in CI on every push and pull request. The
+92 automated tests (98 % coverage, no hardware needed) run in CI on every push and pull request. The
 colours and the temperature response were also checked by eye on the reference machine: device discovery,
 each colour stop, a CPU heat test from blue to red and back, and the token flow. What was and was not
 verified is listed in [docs/testing.md](docs/testing.md).
@@ -187,7 +187,8 @@ and work happens on `feature/*` and `fix/*` branches merged into `develop`; rele
 | `thermal_rgb/` | Plugin package: config, CoolerControl client, colour maths, engine, OpenRGB link |
 | `ui/index.html` | Token settings page shown in CoolerControl |
 | `setup/` | Optional helper that runs OpenRGB as a headless user service |
-| `tests/` | Unit tests |
+| `tests/` | Unit tests; `tests/user/` holds the numbered user-test sessions |
+| `tools/test-guide/` | Interactive guide with pre-flight checks in which the user verifies each change |
 | `docs/` | Hardware, how it works, testing, troubleshooting |
 
 ## Documentation
