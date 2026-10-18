@@ -4,47 +4,64 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/droltr/cc-plugin-thermal-rgb)](https://github.com/droltr/cc-plugin-thermal-rgb/releases)
 
-A [CoolerControl](https://gitlab.com/coolercontrol/coolercontrol) integration plugin that colours
-case fans, RAM and motherboard LEDs by CPU temperature. CoolerControl is the single source of
-temperatures and keeps driving the fans from the same sensors; [OpenRGB](https://openrgb.org) stays
-the hardware driver and is reached through its SDK server.
+A [CoolerControl](https://gitlab.com/coolercontrol/coolercontrol) integration plugin that colours case
+fans, RAM and motherboard LEDs by CPU temperature, so the lighting shows how hot the system is.
+
+## Contents
+
+[Purpose](#purpose) · [Hardware](#hardware) · [How it works](#how-it-works) · [Installation](#installation) ·
+[Configuration](#configuration) · [Usage](#usage) · [Testing](#testing) · [Development](#development) ·
+[Documentation](#documentation) · [Security](#security) · [License](#license)
+
+## Purpose
+
+CoolerControl already drives the fans from temperature sensors. This plugin reuses the same sensor for
+the LEDs: blue when the CPU is cool, then yellow, orange and finally red as it heats up. There is one
+temperature source (CoolerControl) and one LED driver ([OpenRGB](https://openrgb.org)), so the fan
+behaviour and the lighting always agree.
+
+This is **not** an OpenRGB plugin (those are Qt/C++ modules inside the OpenRGB GUI). It is a separate
+Python process that CoolerControl starts, stops and logs, and that talks to OpenRGB over its SDK server.
+
+Version 0.2.0 implements the **temperature bands** theme. A heat-wave theme, rotating user colours and a
+full settings page are planned but not implemented.
+
+## Hardware
+
+Written for, and tested only on, one machine:
+
+| | |
+|---|---|
+| Board | MSI MAG B850 TOMAHAWK MAX WIFI (Mystic Light `JARGB 1–3`) |
+| RAM | Two ENE DRAM modules |
+| CPU sensor | AMD `k10temp` Tctl |
+| Software | Bazzite (Fedora Atomic), CoolerControl 5.0.1, OpenRGB 1.0 (Flatpak) |
+
+The plugin works wherever OpenRGB sees your LEDs, but the default zone map matches only this machine;
+other hardware needs its own `zones` list. Full details, the zone table and a guide for other hardware:
+[docs/hardware.md](docs/hardware.md).
+
+## How it works
 
 ```
-CoolerControl (GET /status) ──▶ thermal-rgb plugin ──▶ OpenRGB SDK server (127.0.0.1:6742) ──▶ LEDs
+CoolerControl (GET /status) ──▶ thermal-rgb ──▶ OpenRGB SDK server (127.0.0.1:6742) ──▶ LEDs
 ```
 
-This is **not** an OpenRGB plugin. OpenRGB plugins are Qt/C++ modules tied to the OpenRGB GUI. This
-project is a separate Python process that CoolerControl starts and stops, and that talks to OpenRGB
-over its network SDK.
+Every second the plugin reads the CPU temperature, smooths it (exponential moving average, 3 s), maps it
+through four colour stops interpolated in the perceptual OKLCH colour space, and writes the result to the
+configured zones only when the colour actually changes.
 
-## Status
+| °C | 50 | 60 | 70 | 80 |
+|---|---|---|---|---|
+| Colour | blue `#2060ff` | yellow `#ffd000` | orange `#ff7a00` | red `#ff0000` |
 
-Version 0.2.0 implements the **temperature bands** theme: every configured zone shows the gradient
-colour for the smoothed CPU temperature (blue → yellow → orange → red). The heat-wave and rotating-colour
-themes, and a full settings page, are planned but not implemented; see [docs/PLAN.md](docs/PLAN.md).
-
-## Features
-
-- Reads the CPU temperature from CoolerControl's REST API (`/status`).
-- Smooths it with a time-aware exponential moving average and maps it to a colour through
-  configurable stops, interpolated in the OKLCH colour space for even transitions.
-- Writes the colour to OpenRGB zones selected by device name, zone name and location, and only when the
-  colour changes by more than two steps per channel.
-- Settings page in CoolerControl for entering the access token; the token is stored in
-  `credentials.json` (mode 0600) and never shown again.
-- Command-line tools to list zones, preview the gradient on the LEDs and hold a single colour.
-- Dry-run mode (`write_leds: false`) that reads temperatures and resolves zones without touching the LEDs.
-
-## Requirements
-
-- Linux with systemd, CoolerControl 5.x with its plugin support, and Python 3.10 or newer.
-- An OpenRGB 1.0 SDK server reachable on `127.0.0.1:6742` (see [OpenRGB server](#openrgb-server)).
-- An access token created in CoolerControl (*Access Protection → Access Tokens*).
-
-The default zone map targets one machine (MSI MAG B850 Tomahawk with Mystic Light `JARGB 1–3` and two
-ENE DRAM modules); other hardware needs its own `zones` list, see [Configuration](#configuration).
+Below 50 °C the colour stays blue and from 80 °C it stays red. Details, error handling and the module
+layout: [docs/how-it-works.md](docs/how-it-works.md).
 
 ## Installation
+
+Requirements: Linux with systemd, CoolerControl 5.x with plugin support, Python 3.10 or newer, an OpenRGB
+1.0 SDK server on `127.0.0.1:6742`, and a CoolerControl access token.
 
 ```bash
 git clone https://github.com/droltr/cc-plugin-thermal-rgb.git
@@ -53,31 +70,24 @@ sudo bash install.sh
 sudo systemctl restart coolercontrold
 ```
 
-`install.sh` copies the plugin to `/var/lib/coolercontrol/plugins/thermal-rgb/`, creates a Python
-virtual environment there, and keeps an existing `config.json` and `credentials.json`. If no
-`config.json` exists yet, it seeds the token from `~/.config/cc-token` when that file is present.
-To remove the plugin, run `sudo bash uninstall.sh`; the LEDs keep their last colour until another
-program sets them.
+`install.sh` copies the plugin to `/var/lib/coolercontrol/plugins/thermal-rgb/`, creates a Python virtual
+environment there and keeps an existing `config.json` and `credentials.json`. If no `config.json` exists
+yet, it seeds the token from `~/.config/cc-token` when that file is present. Remove the plugin with
+`sudo bash uninstall.sh`; the LEDs keep their last colour until another program sets them.
 
-### Entering the access token
+**Access token.** In CoolerControl open *Access Protection → Access Tokens* and generate a token, then open
+*Plugins → thermal-rgb*, paste it and press *Save and restart plugin*. The plugin stores it in
+`credentials.json` (mode 0600) and shows only `***` afterwards. Without a valid token the log shows
+`HTTP Error 401` and the plugin retries every 10 seconds.
 
-1. In CoolerControl open **Access Protection → Access Tokens** and generate a token.
-2. Open **Plugins → thermal-rgb**, paste the token and press **Save and restart plugin**.
-
-The plugin moves the token into `credentials.json` and leaves `***` in `config.json`. Without a valid
-token the plugin logs `HTTP Error 401` and retries every 10 seconds.
-
-### OpenRGB server
-
-OpenRGB must run as a headless SDK server, and its own GUI autostart must be off because two writers
-fight over the LEDs. `setup/install-openrgb-server.sh` does this for the Flatpak build as a user
-service (no root needed) and `setup/uninstall-openrgb-server.sh` reverses it. Details and the
-udev-rules note are in [docs/setup/openrgb.md](docs/setup/openrgb.md).
+**OpenRGB server.** OpenRGB must run headless as an SDK server, with its own GUI autostart off (two
+writers fight over the LEDs). `setup/install-openrgb-server.sh` sets this up for the Flatpak build as a
+user service without root; `setup/uninstall-openrgb-server.sh` reverses it.
 
 ## Configuration
 
-Settings live in `/var/lib/coolercontrol/plugins/thermal-rgb/config.json`; the plugin reads them at
-start. Missing keys use the defaults below.
+Settings live in `/var/lib/coolercontrol/plugins/thermal-rgb/config.json` and are read at start. Missing
+keys use the defaults below.
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -89,10 +99,8 @@ start. Missing keys use the defaults below.
 | `poll_interval_s` | `1.0` | Polling interval, 0.2–60 s |
 | `smoothing_tau_s` | `3.0` | Smoothing time constant; `0` disables smoothing |
 | `write_leds` | `true` | `false` reads and resolves only (dry run) |
-| `stops` | 50 °C `#2060ff`, 60 °C `#ffd000`, 70 °C `#ff7a00`, 80 °C `#ff0000` | Temperature-to-colour stops |
+| `stops` | the four stops above | List of `{temp_c, color}` |
 | `zones` | five zones, rear to front | List of `{name, device, zone?, location?}` |
-
-Example with custom stops and one zone:
 
 ```json
 {
@@ -107,27 +115,31 @@ Example with custom stops and one zone:
 }
 ```
 
-An invalid file is rejected at start with a message in the journal (`Invalid configuration: …`).
+An invalid file is rejected at start with `Invalid configuration: …` in the journal.
 
 ## Usage
 
-CoolerControl starts the plugin as the `cc-plugin-thermal-rgb` systemd service. Follow its log with:
+CoolerControl runs the plugin as the `cc-plugin-thermal-rgb` systemd service. Follow its log with
+`journalctl -f -t run.sh | grep thermal_rgb`.
+
+For development or colour checks, run the module against a local config file:
 
 ```bash
-journalctl -f -t run.sh | grep thermal_rgb
-```
-
-For development, run the module directly against a local config file (not the installed one):
-
-```bash
-python -m thermal_rgb --config config.local.json --list        # temperature, colour and zones
-python -m thermal_rgb --config config.local.json --sweep 45 85  # play the gradient on the LEDs once
+python -m thermal_rgb --config config.local.json --list            # temperature, colour and zones
+python -m thermal_rgb --config config.local.json --sweep 45 85     # play the gradient on the LEDs once
 python -m thermal_rgb --config config.local.json --show '#ff7a00'  # hold one colour
 python -m thermal_rgb --version
 ```
 
-`--sweep` and `--show` write to the LEDs even when `write_leds` is `false`, so stop the installed plugin
-first or the two will compete.
+`--sweep` and `--show` write to the LEDs even when `write_leds` is `false`; stop the installed plugin first
+or the two will compete.
+
+## Testing
+
+72 automated tests (98 % coverage, no hardware needed) run in CI on every push and pull request. The
+colours and the temperature response were also checked by eye on the reference machine: device discovery,
+each colour stop, a CPU heat test from blue to red and back, and the token flow. What was and was not
+verified is listed in [docs/testing.md](docs/testing.md).
 
 ## Development
 
@@ -137,23 +149,30 @@ pip install -r requirements.txt ruff pytest pytest-cov
 ruff format --check . && ruff check . && pytest -q --cov --cov-fail-under=80
 ```
 
-CI runs the same three commands on every push and pull request. Code and documentation are in English,
-commits follow [Conventional Commits](https://www.conventionalcommits.org/), and work happens on
-`feature/*` and `fix/*` branches merged into `develop`; releases are merged into `main` and tagged.
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Code and documentation are in English, commits follow [Conventional Commits](https://www.conventionalcommits.org/),
+and work happens on `feature/*` and `fix/*` branches merged into `develop`; releases are merged into
+`main` and tagged. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Path | Contents |
 |---|---|
 | `thermal_rgb/` | Plugin package: config, CoolerControl client, colour maths, engine, OpenRGB link |
-| `ui/index.html` | Settings page shown in CoolerControl |
-| `tests/` | Unit tests (no hardware or servers needed) |
-| `docs/` | Plan, settings-page design, request log, OpenRGB setup notes |
+| `ui/index.html` | Token settings page shown in CoolerControl |
+| `setup/` | Optional helper that runs OpenRGB as a headless user service |
+| `tests/` | Unit tests |
+| `docs/` | Hardware, how it works, testing |
+
+## Documentation
+
+- [docs/hardware.md](docs/hardware.md): tested hardware, zone map, using other hardware
+- [docs/how-it-works.md](docs/how-it-works.md): data flow, colour model, error handling, token storage
+- [docs/testing.md](docs/testing.md): automated tests, hardware verification, what is not tested
+- [CHANGELOG.md](CHANGELOG.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md)
 
 ## Security
 
-The access token grants CoolerControl API access. It is kept in `credentials.json` with mode 0600 and
-never committed, logged or returned to the settings page. Report vulnerabilities privately as described
-in [SECURITY.md](SECURITY.md).
+The access token grants CoolerControl API access. It is kept in `credentials.json` with mode 0600 and is
+never committed, logged or returned to the settings page. Report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md).
 
 ## License
 
