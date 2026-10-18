@@ -34,12 +34,17 @@ by itself without restarting CoolerControl.
    Close it; two writers make the colours flicker or jump.
 5. Check the colour by hand with the plugin stopped: `python -m thermal_rgb --config config.local.json --show '#ff0000'`.
 
-## The settings page
+## The plugin page
+
+- **Check the Info tab first.** It shows the plugin state, the last error and which zones were found.
+- **State "Not reported yet".** The plugin has not written its status; restart it (or CoolerControl) once.
 
 - **Token is not accepted after saving.** The plugin only moves the token at start. Press *Save and restart plugin*,
   then check the log for `Stored the CoolerControl token in credentials.json`.
 - **Field shows `***`.** That is intended: a token is stored and is never shown again. Paste a new token to replace it.
 - **Page is blank.** The `ui/` folder is missing from the installed plugin; run `sudo bash install.sh` again.
+- **Live temperature shows a dash.** The page could not read the sensor through CoolerControl; the plugin itself is
+  not affected. Check `temp_device_uid` and `temp_name`.
 
 ## Collecting information for an issue
 

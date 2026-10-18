@@ -21,6 +21,7 @@ from .config import Config, ConfigError, load_config
 from .coolercontrol import CoolerControlClient, CoolerControlError
 from .engine import Ema, bands_color, color_changed
 from .openrgb_link import ResolvedZone, ZoneResolutionError, connect, describe, resolve_zone
+from .status import publish_status, running_status, stopped_status, waiting_status
 
 LOG = logging.getLogger("thermal_rgb")
 # CoolerControl passes its log level in CC_LOG (ERROR/WARN/INFO/DEBUG/TRACE).
@@ -135,12 +136,13 @@ def show_mode(cfg: Config, color: RGB) -> int:
     return 0
 
 
-def run(cfg: Config, stop: threading.Event) -> int:
+def run(cfg: Config, stop: threading.Event, status_path: Path | None = None) -> int:
     cc = CoolerControlClient(cfg.coolercontrol_url, cfg.coolercontrol_token)
     uid = cfg.temp_device_uid or cc.first_cpu_uid()
     client = connect(cfg.openrgb_host, cfg.openrgb_port)
     zones = _resolve_zones(client.devices, cfg)
     LOG.info("Connected: %d zones resolved, write_leds=%s", len(zones), cfg.write_leds)
+    publish_status(status_path, running_status(cfg, zones, uid))
     if cfg.write_leds and zones:
         _ensure_direct_mode(client, zones)
     ema = Ema(cfg.smoothing_tau_s)
@@ -215,10 +217,14 @@ def main() -> int:
     # Retry until the dependencies (CoolerControl API, OpenRGB server) are up.
     while not stop.is_set():
         try:
-            return run(cfg, stop)
+            code = run(cfg, stop, args.config)
+            publish_status(args.config, stopped_status(cfg))
+            return code
         except (CoolerControlError, ConnectionError, OSError) as err:
             LOG.warning("Not ready (%s); retrying in 10 s", err)
+            publish_status(args.config, waiting_status(cfg, str(err)))
             stop.wait(10)
+    publish_status(args.config, stopped_status(cfg))
     return 0
 
 

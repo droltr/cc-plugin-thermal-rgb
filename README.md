@@ -33,8 +33,9 @@ Python process that CoolerControl starts, stops and logs, and that talks to Open
 - It never changes fan speeds or any other CoolerControl setting; it only reads one temperature.
 - It does not light devices outside its `zones` list (keyboard, mouse and graphics card are left alone).
 
-Version 0.2.x implements the **temperature bands** theme. A heat-wave theme, rotating user colours and a
-full settings page are planned but not implemented.
+Version 0.3.x implements the **temperature bands** theme and a settings page with an **Info** tab and an
+**API Settings** tab. A heat-wave theme, rotating user colours and editing colours, zones and other options
+on the page are planned but not implemented (edit `config.json` for those).
 
 ## Hardware
 
@@ -87,7 +88,7 @@ yet, it seeds the token from `~/.config/cc-token` when that file is present. Rem
 `sudo bash uninstall.sh`; the LEDs keep their last colour until another program sets them.
 
 **Access token.** In CoolerControl open *Access Protection → Access Tokens* and generate a token, then open
-*Plugins → thermal-rgb*, paste it and press *Save and restart plugin*. The plugin stores it in
+*Plugins → thermal-rgb → API Settings*, paste it and press *Save and restart plugin*. The plugin stores it in
 `credentials.json` (mode 0600) and shows only `***` afterwards. Without a valid token the log shows
 `HTTP Error 401` and the plugin retries every 10 seconds.
 
@@ -129,6 +130,16 @@ keys use the defaults below.
 An invalid file is rejected at start with `Invalid configuration: …` in the journal.
 
 ## Usage
+
+**Plugin page.** In CoolerControl open *Plugins → thermal-rgb*. It has two tabs:
+
+| Tab | Shows |
+|---|---|
+| **Info** | Plugin state (running, waiting, stopped), version, token and OpenRGB status, last error with a hint; the live CPU temperature with the colour it maps to on a gradient bar; the colour stops; the LED zones the plugin is using and the ones it could not find; a short about text, troubleshooting table, links, license and credits |
+| **API Settings** | Entry of the CoolerControl access token (see [Installation](#installation)) |
+
+The plugin reports its state by writing a read-only `_status` block into `config.json` when it starts, waits or
+stops; the page reads it from there. Colours, zones and other options are still edited in `config.json`.
 
 CoolerControl runs the plugin as the `cc-plugin-thermal-rgb` systemd service. Follow its log with
 `journalctl -f -t run.sh | grep thermal_rgb`.

@@ -112,7 +112,7 @@ def credentials_path(config_path: Path) -> Path:
     return config_path.with_name("credentials.json")
 
 
-def _write_json(path: Path, data: dict[str, Any]) -> None:
+def write_json(path: Path, data: dict[str, Any]) -> None:
     """Replace a JSON file atomically, keeping mode 0600."""
     tmp = path.with_name(path.name + ".tmp")
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
@@ -135,8 +135,8 @@ def resolve_token(config_path: Path, raw: dict[str, Any]) -> str:
     if not entered or set(entered) == {"*"}:
         return _stored_token(creds)
     try:
-        _write_json(creds, {"coolercontrol_token": entered})
-        _write_json(config_path, {**raw, "coolercontrol_token": TOKEN_MASK})
+        write_json(creds, {"coolercontrol_token": entered})
+        write_json(config_path, {**raw, "coolercontrol_token": TOKEN_MASK})
         LOG.info("Stored the CoolerControl token in %s", creds.name)
     except OSError as err:
         LOG.warning("Could not move the token to %s (%s); using it from config", creds.name, err)

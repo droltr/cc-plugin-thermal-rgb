@@ -158,7 +158,7 @@ def test_main_list(tmp_path: Path) -> None:
 def test_main_retries_until_ready(tmp_path: Path) -> None:
     attempts = {"n": 0}
 
-    def fake_run(cfg: object, stop: threading.Event) -> int:
+    def fake_run(cfg: object, stop: threading.Event, status_path: object = None) -> int:
         attempts["n"] += 1
         if attempts["n"] == 1:
             raise ConnectionError("openrgb not up")

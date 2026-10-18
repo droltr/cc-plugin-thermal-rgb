@@ -68,9 +68,35 @@ Default stops: 50 °C `#2060ff` (blue), 60 °C `#ffd000` (yellow), 70 °C `#ff7a
 | A zone cannot be matched | Warn and skip that zone |
 | Invalid `config.json` | Exit with `Invalid configuration: …` in the journal |
 
+## Status for the plugin page
+
+CoolerControl plugin pages can only read and write the plugin's `config.json`, so the plugin reports to the page
+through it. On start-up, while it waits for a dependency, and on shutdown it writes a read-only `_status` block:
+
+```json
+"_status": {
+  "state": "running",            // running | waiting | stopped
+  "version": "0.3.0",
+  "token_stored": true,
+  "write_leds": true,
+  "openrgb": {"host": "127.0.0.1", "port": 6742},
+  "temp_device_uid": "…", "temp_name": "temp1",
+  "zones": [{"name": "rear_1", "device": "MSI MYSTIC LIGHT", "zone": "JARGB 1", "leds": 8}],
+  "zones_unresolved": ["ram_1"],
+  "error": "…",                  // only while waiting
+  "updated": "2026-10-18T05:00:00+00:00"
+}
+```
+
+The block never contains the token. It is rewritten only when something other than the timestamp changes, so
+a plugin that keeps failing does not rewrite the file every retry. The **Info** tab shows this block, and reads
+the live CPU temperature itself from CoolerControl through the plugin library; the colour on its gradient bar
+is computed in the browser with the same OKLCH blend as the plugin (checked against `colors.py` for 140
+temperatures).
+
 ## Token handling
 
-The settings page (`ui/index.html`) runs inside CoolerControl and saves the token with the plugin
+The **API Settings** tab of the plugin page (`ui/index.html`) runs inside CoolerControl and saves the token with the plugin
 config. At the next start the plugin moves a newly entered token into `credentials.json` (mode 0600, written
 atomically) and replaces it in `config.json` by `***`. The page therefore never reads the real token back.
 If the folder is not writable, the plugin still uses the token from the config and logs a warning.
@@ -85,4 +111,5 @@ If the folder is not writable, the plugin still uses the token from the config a
 | `thermal_rgb/colors.py` | OKLCH gradient, hex parsing |
 | `thermal_rgb/engine.py` | Smoothing and the temperature-bands theme, change filter |
 | `thermal_rgb/openrgb_link.py` | OpenRGB connection and zone resolution |
-| `ui/index.html` | Token settings page |
+| `thermal_rgb/status.py` | Builds and publishes the `_status` block |
+| `ui/index.html` | Plugin page: Info tab and API Settings tab |

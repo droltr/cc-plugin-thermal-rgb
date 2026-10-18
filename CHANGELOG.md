@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-18
+
+### Added
+- Plugin page redesigned with two tabs. **Info:** plugin state, version, token/OpenRGB status, last error with a hint,
+  live CPU temperature with the colour on an OKLCH gradient bar, colour stops, LED zones found or missing, about,
+  tested hardware, troubleshooting table, links, license and credits. **API Settings:** the token entry from 0.2.0.
+- `thermal_rgb/status.py`: the plugin publishes a read-only `_status` block (state, version, token stored, zones and
+  LED counts, last error) into `config.json` on start, while waiting and on shutdown; it never contains the token.
+- 7 tests for the status block (79 in total).
+
 ## [0.2.2] - 2026-10-18
 
 Documentation release; no behaviour changes.

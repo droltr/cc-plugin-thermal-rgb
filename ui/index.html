@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thermal RGB Settings</title>
+    <title>Thermal RGB</title>
     <script type="text/javascript" src="/plugins/lib/cc-plugin-lib.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,6 +19,7 @@
             --accent: var(--colors-accent, 86 138 242);
             --success: var(--colors-success, 34 197 94);
             --error: var(--colors-error, 233 69 96);
+            --warning: var(--colors-warning, 255 140 0);
         }
 
         body {
@@ -29,19 +30,91 @@
             padding: 24px;
         }
 
+        .page { max-width: 760px; }
+        h1 { font-size: 20px; }
+        h2 { font-size: 15px; margin-bottom: 8px; }
+        h3 { font-size: 13px; margin: 12px 0 4px; }
+        p, li, td, th, dd, dt, summary { font-size: 13px; }
+        p, li, dd { color: rgb(var(--text-color-secondary)); }
+        a { color: rgb(var(--accent)); }
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12px;
+            background: rgb(var(--bg-one));
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+        .version { font-size: 12px; color: rgb(var(--text-color-secondary)); }
+        .lead { margin-bottom: 16px; }
+
+        .tabs { display: flex; gap: 4px; border-bottom: 1px solid rgb(var(--border-one)); margin-bottom: 16px; }
+        .tab {
+            margin: 0;
+            padding: 8px 16px;
+            color: rgb(var(--text-color-secondary));
+            background: none;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            font: inherit;
+            cursor: pointer;
+        }
+        .tab[aria-selected="true"] { color: rgb(var(--text-color)); border-bottom-color: rgb(var(--accent)); }
+        .panel[hidden] { display: none; }
+
         .card {
-            max-width: 560px;
             background: rgb(var(--bg-two));
             border: 1px solid rgb(var(--border-one));
             border-radius: 10px;
-            padding: 20px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
         }
 
-        h1 { font-size: 18px; margin-bottom: 4px; }
-        p, li { font-size: 13px; color: rgb(var(--text-color-secondary)); }
-        ol { margin: 8px 0 16px 20px; }
-        label { display: block; font-weight: 600; font-size: 13px; margin-top: 8px; }
+        .pill {
+            display: inline-block;
+            padding: 1px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            background: rgb(var(--text-color-secondary));
+        }
+        .pill.running { background: rgb(var(--success)); }
+        .pill.waiting { background: rgb(var(--warning)); }
+        .pill.error { background: rgb(var(--error)); }
 
+        dl.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; }
+        dl.kv dt { font-weight: 600; }
+        dl.kv dd { word-break: break-word; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+        th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid rgb(var(--border-one)); }
+        th { font-weight: 600; }
+        td { color: rgb(var(--text-color-secondary)); }
+
+        .temp { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .temp-value { font-size: 28px; font-weight: 700; }
+        .swatch { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgb(var(--border-one)); }
+        .bar { position: relative; height: 14px; border-radius: 7px; margin: 18px 0 4px; }
+        .marker {
+            position: absolute;
+            top: -6px;
+            width: 3px;
+            height: 26px;
+            background: rgb(var(--text-color));
+            border-radius: 2px;
+            transform: translateX(-50%);
+        }
+        .scale { display: flex; justify-content: space-between; font-size: 11px; color: rgb(var(--text-color-secondary)); }
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+        details { margin-top: 6px; }
+        summary { cursor: pointer; font-weight: 600; }
+        ol, ul { margin: 6px 0 0 20px; }
+
+        label { display: block; font-weight: 600; font-size: 13px; margin-top: 8px; }
         input {
             width: 100%;
             margin-top: 4px;
@@ -52,10 +125,8 @@
             border-radius: 6px;
             font: inherit;
         }
-
         input:focus { outline: 2px solid rgb(var(--accent)); }
-
-        button {
+        .primary {
             margin-top: 14px;
             padding: 8px 16px;
             color: #fff;
@@ -65,92 +136,425 @@
             font: inherit;
             cursor: pointer;
         }
-
-        button:disabled { opacity: 0.5; cursor: default; }
-        #status { margin-top: 12px; font-size: 13px; min-height: 1.4em; }
-        #status.ok { color: rgb(var(--success)); }
-        #status.err { color: rgb(var(--error)); }
+        .primary:disabled { opacity: 0.5; cursor: default; }
+        #status-line { margin-top: 12px; font-size: 13px; min-height: 1.4em; }
+        #status-line.ok { color: rgb(var(--success)); }
+        #status-line.err { color: rgb(var(--error)); }
+        .notice { margin-top: 10px; padding: 8px 12px; border-radius: 6px; border: 1px solid rgb(var(--error)); }
+        .notice[hidden] { display: none; }
     </style>
 </head>
 <body>
-    <div class="card">
+<div class="page">
+    <header>
         <h1>Thermal RGB</h1>
-        <p>The plugin reads temperatures from CoolerControl and needs an access token for that.</p>
-        <ol>
-            <li>In CoolerControl open <strong>Access Protection &rarr; Access Tokens</strong>.</li>
-            <li>Generate a new token and copy it (<code>cc_&hellip;</code>).</li>
-            <li>Paste it below and save.</li>
-        </ol>
-        <label for="token">CoolerControl access token</label>
-        <input type="password" id="token" autocomplete="off" spellcheck="false"
-               placeholder="cc_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-        <p id="hint"></p>
-        <button id="save">Save and restart plugin</button>
-        <div id="status" role="status"></div>
+        <span class="version" id="header-version"></span>
+    </header>
+    <p class="lead">Colours your case fans, RAM and motherboard LEDs by CPU temperature, from blue (cool) to red (hot).</p>
+
+    <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-info" aria-controls="panel-info" aria-selected="true">Info</button>
+        <button class="tab" role="tab" id="tab-api" aria-controls="panel-api" aria-selected="false">API Settings</button>
     </div>
 
-    <script>
-        // The plugin moves a newly entered token into credentials.json and leaves this mask in
-        // config.json, so the real token is never shown here again.
-        var MASK = '***';
-        var config = {};
-        var tokenInput = document.getElementById('token');
-        var saveButton = document.getElementById('save');
-        var statusLine = document.getElementById('status');
+    <!-- ===================== Info ===================== -->
+    <section class="panel" id="panel-info" role="tabpanel" aria-labelledby="tab-info">
+        <div class="card">
+            <h2>Status</h2>
+            <dl class="kv" id="status-grid"></dl>
+            <div class="notice" id="status-hint" hidden></div>
+        </div>
 
-        function setStatus(text, kind) {
-            statusLine.textContent = text;
-            statusLine.className = kind || '';
-        }
+        <div class="card">
+            <h2>Temperature and colours</h2>
+            <div class="temp">
+                <span class="temp-value" id="temp-value">&ndash;</span>
+                <span class="swatch" id="temp-swatch" title="Colour for the current temperature"></span>
+                <span id="temp-note"></span>
+            </div>
+            <div class="bar" id="gradient-bar"><span class="marker" id="temp-marker" hidden></span></div>
+            <div class="scale"><span id="scale-min"></span><span id="scale-max"></span></div>
+            <table>
+                <thead><tr><th>From</th><th>Colour</th></tr></thead>
+                <tbody id="stops-body"></tbody>
+            </table>
+            <p>Below the first stop the first colour is held, above the last stop the last colour. Colours in between
+               are blended in the OKLCH colour space so the transition looks even. The temperature is smoothed
+               (about 3 s) before it is converted to a colour.</p>
+        </div>
 
-        function normalize(raw) {
-            if (typeof raw === 'string') {
-                try { raw = JSON.parse(raw); } catch (e) { return {}; }
+        <div class="card">
+            <h2>LED zones</h2>
+            <table>
+                <thead><tr><th>Zone</th><th>OpenRGB device</th><th>LEDs</th><th>State</th></tr></thead>
+                <tbody id="zones-body"></tbody>
+            </table>
+            <p id="zones-note"></p>
+        </div>
+
+        <div class="card">
+            <h2>About</h2>
+            <p>This plugin reads the CPU temperature from CoolerControl, the same sensor your fan curves use, and writes
+               the matching colour to the LEDs of the zones you configure, through the OpenRGB SDK server. It never
+               changes fan speeds or other CoolerControl settings, and it does not touch devices outside its zones.</p>
+            <details>
+                <summary>How it works</summary>
+                <ol>
+                    <li>Every second it asks CoolerControl (<code>GET /status</code>) for the CPU temperature.</li>
+                    <li>The value is smoothed with a time-aware moving average.</li>
+                    <li>It is mapped to a colour through the colour stops.</li>
+                    <li>The colour is sent to OpenRGB only when it changed noticeably.</li>
+                </ol>
+            </details>
+            <details>
+                <summary>Tested hardware</summary>
+                <p>Written for and tested on one system: MSI MAG B850 TOMAHAWK MAX WIFI (Mystic Light
+                   <code>JARGB 1&ndash;3</code>), AMD Ryzen 7 9800X3D, two DDR5-6000 modules with ENE RGB controllers,
+                   CoolerControl 5.0.1 and OpenRGB 1.0. Other hardware may work through OpenRGB but is untested and
+                   needs its own zone list.</p>
+            </details>
+            <details>
+                <summary>Troubleshooting</summary>
+                <table>
+                    <thead><tr><th>Symptom</th><th>Usual cause and fix</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>HTTP Error 401</code></td><td>CoolerControl rejected the token. Create a new one and enter it on the <em>API Settings</em> tab.</td></tr>
+                        <tr><td><code>HTTP Error 429</code></td><td>Rate limiting, usually after repeated 401 errors. Fix the token and wait a moment.</td></tr>
+                        <tr><td>State &ldquo;waiting&rdquo;</td><td>CoolerControl or the OpenRGB server is not reachable; the plugin retries every 10 seconds.</td></tr>
+                        <tr><td>0 zones resolved</td><td>The zone names do not match your OpenRGB devices; see the zones table above and the documentation.</td></tr>
+                        <tr><td>LEDs do not change</td><td>LED writes are off, another program writes the same LEDs, or the temperature stays inside one colour band.</td></tr>
+                    </tbody>
+                </table>
+            </details>
+        </div>
+
+        <div class="card">
+            <h2>Links, license and credits</h2>
+            <ul>
+                <li><a href="https://github.com/droltr/cc-plugin-thermal-rgb" target="_blank" rel="noopener noreferrer">Project on GitHub</a>
+                    &middot; <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a>
+                    &middot; <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/docs/troubleshooting.md" target="_blank" rel="noopener noreferrer">Troubleshooting guide</a></li>
+                <li><a href="https://github.com/droltr/cc-plugin-thermal-rgb/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+                    &middot; <a href="https://github.com/droltr/cc-plugin-thermal-rgb/issues/new/choose" target="_blank" rel="noopener noreferrer">Report a problem</a></li>
+                <li>License: GPL-3.0-or-later. Copyright &copy; 2026 droltr.</li>
+                <li>Built on CoolerControl, OpenRGB and openrgb-python; colour blending uses the OKLab colour space by
+                    Bj&ouml;rn Ottosson. Full list: <a href="https://github.com/droltr/cc-plugin-thermal-rgb/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">third-party notices</a>.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ===================== API Settings ===================== -->
+    <section class="panel" id="panel-api" role="tabpanel" aria-labelledby="tab-api" hidden>
+        <div class="card">
+            <h2>CoolerControl access token</h2>
+            <p>The plugin needs an access token to read temperatures from CoolerControl.</p>
+            <ol>
+                <li>In CoolerControl open <strong>Access Protection &rarr; Access Tokens</strong>.</li>
+                <li>Generate a new token and copy it (<code>cc_&hellip;</code>).</li>
+                <li>Paste it below and save.</li>
+            </ol>
+            <label for="token">Access token</label>
+            <input type="password" id="token" autocomplete="off" spellcheck="false"
+                   placeholder="cc_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+            <p id="hint"></p>
+            <button class="primary" id="save">Save and restart plugin</button>
+            <div id="status-line" role="status"></div>
+            <p>The token is stored in <code>credentials.json</code> with restricted permissions (mode 0600) and is never shown again;
+               this page only displays <code>***</code>. The plugin applies it when it restarts.</p>
+        </div>
+    </section>
+</div>
+
+<script>
+    // ---- constants ---------------------------------------------------------------------------------------
+    var MASK = '***';
+    var DEFAULT_STOPS = [
+        { temp_c: 50, color: '#2060ff' }, { temp_c: 60, color: '#ffd000' },
+        { temp_c: 70, color: '#ff7a00' }, { temp_c: 80, color: '#ff0000' }
+    ];
+    var DEFAULT_ZONES = [
+        { name: 'rear_1', device: 'MSI MYSTIC LIGHT', zone: 'JARGB 1' },
+        { name: 'rear_2', device: 'MSI MYSTIC LIGHT', zone: 'JARGB 2' },
+        { name: 'ram_1', device: 'ENE DRAM' }, { name: 'ram_2', device: 'ENE DRAM' },
+        { name: 'front', device: 'MSI MYSTIC LIGHT', zone: 'JARGB 3' }
+    ];
+    var config = {};
+
+    // ---- colour maths: the same OKLCH blend as thermal_rgb/colors.py (OKLab by Bjorn Ottosson) ---------
+    function hexToRgb(hex) {
+        var t = String(hex).trim().replace(/^#/, '');
+        if (!/^[0-9a-fA-F]{6}$/.test(t)) return null;
+        return [parseInt(t.slice(0, 2), 16), parseInt(t.slice(2, 4), 16), parseInt(t.slice(4, 6), 16)];
+    }
+    function toLinear(c) { return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+    function fromLinear(c) { return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; }
+    function clamp01(v) { return Math.min(1, Math.max(0, v)); }
+    function rgbToOklch(rgb) {
+        var r = toLinear(rgb[0] / 255), g = toLinear(rgb[1] / 255), b = toLinear(rgb[2] / 255);
+        var l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+        var m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+        var s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+        var L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+        var a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+        var bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+        var h = Math.atan2(bb, a) * 180 / Math.PI;
+        return [L, Math.hypot(a, bb), ((h % 360) + 360) % 360];
+    }
+    function oklchToRgb(L, C, H) {
+        var a = C * Math.cos(H * Math.PI / 180), b = C * Math.sin(H * Math.PI / 180);
+        var l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+        var m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+        var s = Math.pow(L - 0.0894841775 * a - 1.2914855480 * b, 3);
+        var lin = [
+            4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+            -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+            -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+        ];
+        return lin.map(function (v) { return Math.round(clamp01(fromLinear(clamp01(v))) * 255); });
+    }
+    function mixOklch(c1, c2, t) {
+        t = clamp01(t);
+        var p = rgbToOklch(c1), q = rgbToOklch(c2), h1 = p[2], h2 = q[2];
+        if (p[1] < 1e-4) h1 = h2;
+        if (q[1] < 1e-4) h2 = h1;
+        var delta = ((h2 - h1 + 180) % 360 + 360) % 360 - 180;
+        var hue = (((h1 + delta * t) % 360) + 360) % 360;
+        return oklchToRgb(p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, hue);
+    }
+    function normalizeStops(raw) {
+        var stops = (Array.isArray(raw) && raw.length ? raw : DEFAULT_STOPS).map(function (s) {
+            return { temp: Number(s.temp_c), rgb: hexToRgb(s.color), color: String(s.color) };
+        }).filter(function (s) { return isFinite(s.temp) && s.rgb; });
+        if (!stops.length) stops = normalizeStops(DEFAULT_STOPS);
+        return stops.sort(function (a, b) { return a.temp - b.temp; });
+    }
+    function gradientAt(temp, stops) {
+        if (temp <= stops[0].temp) return stops[0].rgb;
+        var last = stops[stops.length - 1];
+        if (temp >= last.temp) return last.rgb;
+        for (var i = 0; i < stops.length - 1; i++) {
+            var lo = stops[i], hi = stops[i + 1];
+            if (temp >= lo.temp && temp <= hi.temp) {
+                var span = hi.temp - lo.temp;
+                return mixOklch(lo.rgb, hi.rgb, span ? (temp - lo.temp) / span : 1);
             }
-            if (!raw || typeof raw !== 'object') return {};
-            return raw.config || raw.body || raw;
         }
+        return last.rgb;
+    }
+    function rgbCss(rgb) { return 'rgb(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ')'; }
 
-        function showTokenState() {
-            var stored = typeof config.coolercontrol_token === 'string' && config.coolercontrol_token !== '';
-            tokenInput.value = stored ? MASK : '';
-            document.getElementById('hint').textContent = stored
-                ? 'A token is stored. Leave the field as is to keep it, or paste a new one to replace it.'
-                : 'No token stored yet.';
+    // ---- DOM helpers (all dynamic text goes through textContent) -------------------------------------------
+    function $(id) { return document.getElementById(id); }
+    function el(tag, text, className) {
+        var node = document.createElement(tag);
+        if (text !== undefined && text !== null) node.textContent = text;
+        if (className) node.className = className;
+        return node;
+    }
+    function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+    function normalize(raw) {
+        if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch (e) { return {}; }
         }
+        if (!raw || typeof raw !== 'object') return {};
+        return raw.config || raw.body || raw;
+    }
+    function formatTime(iso) {
+        var d = new Date(iso);
+        return isNaN(d.getTime()) ? String(iso) : d.toLocaleString();
+    }
 
-        async function save() {
-            var value = tokenInput.value.trim();
-            if (!value) {
-                setStatus('Paste a token first.', 'err');
-                return;
-            }
-            saveButton.disabled = true;
-            setStatus('Saving...');
-            try {
-                config.coolercontrol_token = value;
-                await savePluginConfig(config);
-                await restartPlugin();
-                config.coolercontrol_token = MASK;
-                showTokenState();
-                setStatus('Saved. The plugin restarted with the new token.', 'ok');
-            } catch (err) {
-                setStatus('Save failed: ' + (err && err.message ? err.message : err), 'err');
-            } finally {
-                saveButton.disabled = false;
+    // ---- Info tab ------------------------------------------------------------------------------------------
+    var STATE_LABELS = { running: 'Running', waiting: 'Waiting for dependencies', stopped: 'Stopped' };
+
+    function addRow(grid, name, valueNode) {
+        grid.appendChild(el('dt', name));
+        var dd = el('dd');
+        dd.appendChild(typeof valueNode === 'string' ? document.createTextNode(valueNode) : valueNode);
+        grid.appendChild(dd);
+    }
+
+    function renderStatus() {
+        var st = config._status, grid = $('status-grid'), hint = $('status-hint');
+        clear(grid);
+        hint.hidden = true;
+        $('header-version').textContent = st && st.version ? 'v' + st.version : '';
+        var state = st && st.state;
+        var pill = el('span', STATE_LABELS[state] || 'Not reported yet', 'pill ' + (state || ''));
+        addRow(grid, 'Plugin', pill);
+        if (!st) {
+            addRow(grid, 'Details', 'The plugin has not reported its status yet. It does so each time it starts.');
+            return;
+        }
+        addRow(grid, 'Token', st.token_stored ? 'Stored' : 'Not set (see API Settings)');
+        addRow(grid, 'LED writes', st.write_leds ? 'On' : 'Off (dry run: reads and resolves only)');
+        if (st.openrgb) addRow(grid, 'OpenRGB server', st.openrgb.host + ':' + st.openrgb.port);
+        addRow(grid, 'Temperature sensor', (st.temp_device_uid ? st.temp_device_uid.slice(0, 8) + ' / ' : 'first CPU / ') + st.temp_name);
+        if (st.updated) addRow(grid, 'Last report', formatTime(st.updated));
+        if (st.error) {
+            addRow(grid, 'Last error', st.error);
+            if (/401|429/.test(st.error)) {
+                hint.textContent = 'CoolerControl is refusing the plugin’s requests. Enter a new access token on the API Settings tab.';
+                hint.hidden = false;
             }
         }
+    }
 
-        saveButton.addEventListener('click', save);
-
-        runPluginScript(async function () {
-            try {
-                config = normalize(await getPluginConfig());
-            } catch (err) {
-                setStatus('Could not load the plugin config: ' + (err && err.message ? err.message : err), 'err');
-            }
-            showTokenState();
+    function renderStops() {
+        var stops = normalizeStops(config.stops), body = $('stops-body');
+        clear(body);
+        stops.forEach(function (s) {
+            var tr = el('tr'), colour = el('td');
+            var dot = el('span', '', 'dot');
+            dot.style.background = s.color;
+            colour.appendChild(dot);
+            colour.appendChild(document.createTextNode(s.color));
+            tr.appendChild(el('td', s.temp + ' °C'));
+            tr.appendChild(colour);
+            body.appendChild(tr);
         });
-    </script>
+        var min = stops[0].temp - 10, max = stops[stops.length - 1].temp + 10, span = max - min;
+        var parts = [rgbCss(stops[0].rgb) + ' 0%'];
+        stops.forEach(function (s) { parts.push(rgbCss(s.rgb) + ' ' + (((s.temp - min) / span) * 100).toFixed(1) + '%'); });
+        parts.push(rgbCss(stops[stops.length - 1].rgb) + ' 100%');
+        $('gradient-bar').style.background = 'linear-gradient(in oklch to right, ' + parts.join(', ') + ')';
+        $('scale-min').textContent = min + ' °C';
+        $('scale-max').textContent = max + ' °C';
+        return { stops: stops, min: min, max: max };
+    }
+
+    function renderTemperature(temp, scale) {
+        var marker = $('temp-marker'), swatch = $('temp-swatch');
+        if (temp === null || !isFinite(temp)) {
+            $('temp-value').textContent = '–';
+            $('temp-note').textContent = 'Live temperature is not available here.';
+            marker.hidden = true;
+            swatch.style.background = 'transparent';
+            return;
+        }
+        $('temp-value').textContent = temp.toFixed(1) + ' °C';
+        $('temp-note').textContent = 'CPU, as CoolerControl reports it';
+        swatch.style.background = rgbCss(gradientAt(temp, scale.stops));
+        marker.style.left = (clamp01((temp - scale.min) / (scale.max - scale.min)) * 100) + '%';
+        marker.hidden = false;
+    }
+
+    function lookup(container, key) {
+        if (!container) return undefined;
+        return typeof container.get === 'function' ? container.get(key) : container[key];
+    }
+
+    async function readCpuTemp() {
+        try {
+            var st = config._status || {};
+            var uid = config.temp_device_uid || st.temp_device_uid;
+            if (!uid) {
+                var devices = await getDevices();
+                var cpu = (devices || []).find(function (d) { return d && d.type === 'CPU'; });
+                uid = cpu && cpu.uid;
+            }
+            if (!uid) return null;
+            var entry = lookup(lookup(await getStatus(), uid), config.temp_name || 'temp1');
+            var value = entry && typeof entry === 'object' ? entry.temp : entry;
+            var temp = parseFloat(value);
+            return isFinite(temp) ? temp : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function renderZones() {
+        var st = config._status, body = $('zones-body'), note = $('zones-note');
+        clear(body);
+        var configured = Array.isArray(config.zones) ? config.zones : DEFAULT_ZONES;
+        var resolved = {};
+        ((st && st.zones) || []).forEach(function (z) { resolved[z.name] = z; });
+        configured.forEach(function (z) {
+            var r = resolved[z.name], tr = el('tr');
+            tr.appendChild(el('td', z.name));
+            tr.appendChild(el('td', z.device + (z.zone ? ' / ' + z.zone : '')));
+            tr.appendChild(el('td', r ? String(r.leds) : '–'));
+            tr.appendChild(el('td', !st || st.state !== 'running' ? 'unknown' : (r ? 'in use' : 'not found')));
+            body.appendChild(tr);
+        });
+        note.textContent = st && st.state === 'running' && st.zones_unresolved && st.zones_unresolved.length
+            ? 'Zones marked “not found” do not match any OpenRGB device and are skipped.'
+            : 'Each zone shows the same temperature colour.';
+    }
+
+    var tempTimer = null;
+    async function refreshInfo() {
+        var scale = renderStops();
+        renderStatus();
+        renderZones();
+        renderTemperature(await readCpuTemp(), scale);
+    }
+    function startInfoRefresh() {
+        stopInfoRefresh();
+        refreshInfo();
+        tempTimer = setInterval(async function () { renderTemperature(await readCpuTemp(), renderStops()); }, 2000);
+    }
+    function stopInfoRefresh() { if (tempTimer) { clearInterval(tempTimer); tempTimer = null; } }
+
+    // ---- tabs ----------------------------------------------------------------------------------------------
+    function selectTab(name) {
+        ['info', 'api'].forEach(function (id) {
+            var active = id === name;
+            $('tab-' + id).setAttribute('aria-selected', active ? 'true' : 'false');
+            $('panel-' + id).hidden = !active;
+        });
+        if (name === 'info') startInfoRefresh(); else stopInfoRefresh();
+    }
+
+    // ---- API Settings tab ----------------------------------------------------------------------------------
+    var tokenInput = $('token'), saveButton = $('save'), statusLine = $('status-line');
+
+    function setStatus(text, kind) { statusLine.textContent = text; statusLine.className = kind || ''; }
+
+    function showTokenState() {
+        var stored = typeof config.coolercontrol_token === 'string' && config.coolercontrol_token !== '';
+        tokenInput.value = stored ? MASK : '';
+        $('hint').textContent = stored
+            ? 'A token is stored. Leave the field as is to keep it, or paste a new one to replace it.'
+            : 'No token stored yet.';
+    }
+
+    async function save() {
+        var value = tokenInput.value.trim();
+        if (!value) { setStatus('Paste a token first.', 'err'); return; }
+        saveButton.disabled = true;
+        setStatus('Saving...');
+        try {
+            config.coolercontrol_token = value;
+            await savePluginConfig(config);
+            await restartPlugin();
+            config.coolercontrol_token = MASK;
+            showTokenState();
+            setStatus('Saved. The plugin restarted with the new token; check the Info tab for its status.', 'ok');
+        } catch (err) {
+            setStatus('Save failed: ' + (err && err.message ? err.message : err), 'err');
+        } finally {
+            saveButton.disabled = false;
+        }
+    }
+
+    // ---- start ---------------------------------------------------------------------------------------------
+    $('tab-info').addEventListener('click', function () { selectTab('info'); });
+    $('tab-api').addEventListener('click', function () { selectTab('api'); });
+    saveButton.addEventListener('click', save);
+
+    window.ThermalRgbPage = { gradientAt: gradientAt, normalizeStops: normalizeStops, hexToRgb: hexToRgb, normalize: normalize };
+
+    runPluginScript(async function () {
+        try {
+            config = normalize(await getPluginConfig());
+        } catch (err) {
+            setStatus('Could not load the plugin config: ' + (err && err.message ? err.message : err), 'err');
+        }
+        showTokenState();
+        var hasToken = typeof config.coolercontrol_token === 'string' && config.coolercontrol_token !== '';
+        selectTab(hasToken ? 'info' : 'api');
+    });
+</script>
 </body>
 </html>

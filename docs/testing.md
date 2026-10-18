@@ -24,6 +24,16 @@ push to `main` and `develop` and on every pull request.
 
 Tests use fake OpenRGB and CoolerControl clients, so no server, LED or token is needed.
 
+## Plugin page (Info and API Settings tabs)
+
+Checked outside CoolerControl by running `ui/index.html` in jsdom with a mock of CoolerControl's plugin library:
+Info tab with a running, a waiting (HTTP 401 with hint) and a never-reported plugin; live temperature, marker and
+colour swatch; zone table with found and missing zones; API Settings tab opens first when no token is stored;
+saving sends the token to `savePluginConfig`, restarts the plugin and then shows `***`. The browser colour
+blend matched `colors.py` exactly for 140 temperatures from 30 to 99.5 °C. These checks are not part of CI.
+The page still needs a visual check inside the real CoolerControl iframe (full-page and modal view, dark and light
+theme); until that is logged in the table below, treat the layout as unverified.
+
 ## Hardware verification (reference system)
 
 | Date | Check | Result |
