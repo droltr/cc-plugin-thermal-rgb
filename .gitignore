@@ -21,6 +21,7 @@ credentials.json
 *.token
 .private/
 .agent-sessions/
+agents/
 
 # Soft-deleted files
 .deleted/
