@@ -28,7 +28,7 @@ Tests use fake OpenRGB and CoolerControl clients, so no server, LED or token is 
 
 | Date | Check | Result |
 |---|---|---|
-| 2026-10-09 | Device discovery with `--list` | MSI Mystic Light (`JARGB 1–3`) and both ENE DRAM modules found; all five zones resolved |
+| 2026-10-09 | Device discovery with `--list` | MSI Mystic Light (`JARGB 1–3`) and both RAM modules (ENE controllers) found; all five zones resolved |
 | 2026-10-09 | Colours shown one by one with `--show`, plugin stopped | Red, green, blue and white clean; the four default stops judged by eye and approved (`#2060ff`, `#ffd000`, `#ff7a00`, `#ff0000`, red clearly distinct from orange) |
 | 2026-10-09 | Heat test (CoolerControl's CPU stress test) | Blue → yellow → orange → red at the expected thresholds, red held for 81 s, back to blue on cooling; transitions follow the fast-heating CPU |
 | 2026-10-18 | Settings page and token flow in CoolerControl 5.0.1 | New token entered on the page, moved to `credentials.json`, `config.json` shows `***`, HTTP 401/429 stopped |
